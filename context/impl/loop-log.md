@@ -117,3 +117,11 @@
 - **Files:** internal/frontier/progress.go, internal/frontier/progress_test.go
 - **Validation:** Build P, Tests 4/4 P, Acceptance 3/3
 - **Next:** T-016 — Frontier multi-candidate ranking and selection
+
+### Iteration 16 — 2026-03-17
+- **Task:** T-016 — Frontier multi-candidate ranking and selection
+- **Tier:** 1
+- **Status:** DONE
+- **Files:** internal/frontier/ranking.go, internal/frontier/ranking_test.go
+- **Validation:** Build P, Tests 6/6 P, Acceptance 5/5
+- **Next:** T-018 — Bubbletea app shell (Tier 1, last remaining)
