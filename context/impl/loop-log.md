@@ -101,3 +101,11 @@
 - **Files:** internal/frontier/tracking.go, internal/frontier/tracking_test.go
 - **Validation:** Build P, Tests 6/6 P, Acceptance 5/5
 - **Next:** T-015 — Frontier status classification
+
+### Iteration 14 — 2026-03-17
+- **Task:** T-015 — Frontier status classification (done/in-progress/available)
+- **Tier:** 1
+- **Status:** DONE
+- **Files:** internal/frontier/status.go, internal/frontier/status_test.go
+- **Validation:** Build P, Tests 5/5 P, Acceptance 4/4
+- **Next:** T-017 — Progress summary string generation
