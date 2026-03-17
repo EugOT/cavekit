@@ -3,11 +3,14 @@ package tui
 
 import (
 	"context"
+	osexec "os/exec"
+	"path/filepath"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/julb/blueprint-monitor/internal/exec"
+	"github.com/julb/blueprint-monitor/internal/frontier"
 	"github.com/julb/blueprint-monitor/internal/session"
 	"github.com/julb/blueprint-monitor/internal/tmux"
 	"github.com/julb/blueprint-monitor/internal/worktree"
@@ -44,6 +47,9 @@ type instanceCreatedMsg struct {
 	err  error
 }
 
+// attachFinishedMsg is sent when tmux attach returns.
+type attachFinishedMsg struct{ err error }
+
 // App is the main bubbletea model.
 type App struct {
 	width  int
@@ -58,21 +64,34 @@ type App struct {
 	bottomMenu   *BottomMenu
 	overlay      *Overlay
 
+	// Tab data sources
+	previewTab  *PreviewTab
+	diffTab     *DiffTab
+	terminalTab *TerminalTab
+
+	// Frontier picker for new-instance flow
+	frontierPicker *FrontierPicker
+
+	// Pending confirmation action (to distinguish kill vs push)
+	pendingAction KeyAction
+
 	// Data
 	instances []*session.Instance
 
 	// Session management
-	sessionMgr  *session.Manager
-	store       *session.Store
-	projectRoot string
-	program     string
+	sessionMgr     *session.Manager
+	store          *session.Store
+	autoYes        *session.AutoYes
+	statusDetector *tmux.StatusDetector
+	projectRoot    string
+	program        string
 
 	// Set to true when we need to quit
 	quitting bool
 }
 
 // NewApp creates a new TUI application model.
-func NewApp(projectRoot, program string) App {
+func NewApp(projectRoot, program string, autoYesEnabled bool) App {
 	executor := exec.NewRealExecutor()
 	tmuxMgr := tmux.NewManager(executor)
 	wtMgr := worktree.NewManager(executor)
@@ -85,10 +104,22 @@ func NewApp(projectRoot, program string) App {
 		tabContent:   NewTabContent(),
 		bottomMenu:   NewBottomMenu(),
 		overlay:      NewOverlay(),
-		sessionMgr:   sessMgr,
-		store:        store,
-		projectRoot:  projectRoot,
-		program:      program,
+
+		// Tab data sources
+		previewTab:  NewPreviewTab(tmuxMgr),
+		diffTab:     NewDiffTab(wtMgr),
+		terminalTab: NewTerminalTab(tmuxMgr),
+
+		// Frontier picker
+		frontierPicker: NewFrontierPicker(),
+
+		// Session management
+		sessionMgr:     sessMgr,
+		store:          store,
+		autoYes:        session.NewAutoYes(tmuxMgr, autoYesEnabled),
+		statusDetector: tmux.NewStatusDetector(tmuxMgr),
+		projectRoot:    projectRoot,
+		program:        program,
 	}
 }
 
@@ -115,32 +146,56 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch action {
 		case ActionQuit:
 			a.quitting = true
+			a.saveState()
 			return a, tea.Quit
 		case ActionSwitchTab:
 			a.activeTab = (a.activeTab + 1) % 3
 			a.tabContent.SetActiveTab(a.activeTab)
 		case ActionNavigateDown:
-			a.selectedIndex++
-			a.instanceList.SetSelected(a.selectedIndex)
-			a.selectedIndex = a.instanceList.SelectedIndex()
-		case ActionNavigateUp:
-			if a.selectedIndex > 0 {
-				a.selectedIndex--
+			if a.overlay.Active == OverlayFrontierPicker {
+				a.frontierPicker.MoveDown()
+			} else {
+				a.selectedIndex++
+				a.instanceList.SetSelected(a.selectedIndex)
+				a.selectedIndex = a.instanceList.SelectedIndex()
 			}
-			a.instanceList.SetSelected(a.selectedIndex)
-			a.selectedIndex = a.instanceList.SelectedIndex()
+		case ActionNavigateUp:
+			if a.overlay.Active == OverlayFrontierPicker {
+				a.frontierPicker.MoveUp()
+			} else {
+				if a.selectedIndex > 0 {
+					a.selectedIndex--
+				}
+				a.instanceList.SetSelected(a.selectedIndex)
+				a.selectedIndex = a.instanceList.SelectedIndex()
+			}
 		case ActionHelp:
 			if a.overlay.Active == OverlayHelp {
 				a.overlay.Hide()
 			} else {
 				a.overlay.Show(OverlayHelp, "", "")
 			}
+		case ActionToggleSelect:
+			if a.overlay.Active == OverlayFrontierPicker {
+				a.frontierPicker.ToggleSelect()
+			}
 		case ActionCancel:
 			a.overlay.Hide()
+			a.frontierPicker.Hide()
 		case ActionNew:
-			a.overlay.Show(OverlayTextInput, "New Instance", "Enter instance name:")
+			// Discover frontiers and show picker if any found
+			items := a.discoverFrontierItems()
+			if len(items) > 0 {
+				a.frontierPicker.SetItems(items)
+				a.frontierPicker.Show()
+				a.overlay.Show(OverlayFrontierPicker, "Select Frontier", "")
+			} else {
+				// No frontiers found — fall back to text input
+				a.overlay.Show(OverlayTextInput, "New Instance", "Enter frontier name:")
+			}
 		case ActionKill:
 			if sel := a.instanceList.Selected(); sel != nil {
+				a.pendingAction = ActionKill
 				a.overlay.Show(OverlayConfirmation, "Kill Instance", "Kill '"+sel.Title+"'?")
 			}
 		case ActionTextInput:
@@ -156,45 +211,80 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case ActionConfirmYes:
 			switch a.overlay.Active {
+			case OverlayFrontierPicker:
+				// Launch selected frontiers
+				selected := a.frontierPicker.SelectedItems()
+				a.overlay.Hide()
+				a.frontierPicker.Hide()
+				if len(selected) > 0 {
+					return a, a.launchFrontiers(selected)
+				}
 			case OverlayTextInput:
 				name := a.overlay.InputValue
-				if name != "" {
+				if name != "" && len(name) <= 32 {
 					a.overlay.Hide()
-					return a, a.createInstance(name)
+					return a, a.createInstanceCmd(name)
 				}
 			case OverlayConfirmation:
 				if sel := a.instanceList.Selected(); sel != nil {
 					a.overlay.Hide()
-					a.sessionMgr.Kill(context.Background(), sel, a.projectRoot, true)
-					a.removeInstance(sel)
+					switch a.pendingAction {
+					case ActionKill:
+						a.sessionMgr.Kill(context.Background(), sel, a.projectRoot, true)
+						a.removeInstance(sel)
+					case ActionPush:
+						wtMgr := worktree.NewManager(exec.NewRealExecutor())
+						wtMgr.Push(context.Background(), sel.WorktreePath, "Blueprint: push from monitor")
+					}
+					a.pendingAction = ActionNone
 				}
 			}
 		case ActionConfirmNo:
 			a.overlay.Hide()
+		case ActionOpen:
+			if sel := a.instanceList.Selected(); sel != nil && sel.TmuxSession != "" {
+				return a, a.attachCmd(sel.TmuxSession)
+			}
+		case ActionPush:
+			if sel := a.instanceList.Selected(); sel != nil && sel.WorktreePath != "" {
+				a.pendingAction = ActionPush
+				a.overlay.Show(OverlayConfirmation, "Push Branch", "Push '"+sel.Title+"' branch to remote?")
+			}
+		case ActionCheckout:
+			if sel := a.instanceList.Selected(); sel != nil && sel.WorktreePath != "" {
+				// Open a shell in the worktree via terminal tab
+				a.terminalTab.EnsureSession(context.Background(), sel.Title, sel.WorktreePath)
+				a.activeTab = TabTerminal
+				a.tabContent.SetActiveTab(TabTerminal)
+			}
+		case ActionResume:
+			if sel := a.instanceList.Selected(); sel != nil && sel.Status == session.StatusPaused {
+				a.sessionMgr.Resume(context.Background(), sel)
+				a.instanceList.SetInstances(a.instances)
+			}
+		case ActionScrollUp:
+			a.diffTab.ScrollUp(3)
+			a.tabContent.SetDiff(a.diffTab.Content())
+		case ActionScrollDown:
+			a.diffTab.ScrollDown(3)
+			a.tabContent.SetDiff(a.diffTab.Content())
 		}
 
 	case tea.MouseMsg:
 		if !a.overlay.IsActive() {
 			leftWidth := max(int(float64(a.width)*LeftPanelRatio), MinLeftWidth)
-
 			if msg.X < leftWidth {
-				// Click in instance list — select the clicked row
-				// Account for border (1 row top) and row height (1 per instance)
 				row := msg.Y - 1
 				if row >= 0 && row < len(a.instances) {
 					a.selectedIndex = row
 					a.instanceList.SetSelected(a.selectedIndex)
 					a.selectedIndex = a.instanceList.SelectedIndex()
 				}
-			} else {
-				// Click in right panel — check if clicking tab bar
-				if msg.Y <= 2 {
-					// Clicked in tab bar area — cycle tab on click
-					a.activeTab = (a.activeTab + 1) % 3
-					a.tabContent.SetActiveTab(a.activeTab)
-				}
 			}
 		}
+
+	case attachFinishedMsg:
+		// TUI resumes after tmux detach — nothing special to do
 
 	case instanceCreatedMsg:
 		if msg.err == nil && msg.inst != nil {
@@ -202,7 +292,7 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			a.instanceList.SetInstances(a.instances)
 			a.selectedIndex = len(a.instances) - 1
 			a.instanceList.SetSelected(a.selectedIndex)
-			a.store.Save(a.instances)
+			a.saveState()
 		}
 
 	case tea.WindowSizeMsg:
@@ -211,10 +301,83 @@ func (a App) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		a.updateLayout()
 
 	case tickMsg:
+		a.onTick()
 		return a, tickCmd()
 	}
 
 	return a, nil
+}
+
+// onTick performs all periodic updates on each 500ms tick.
+func (a *App) onTick() {
+	ctx := context.Background()
+
+	wtMgr := worktree.NewManager(exec.NewRealExecutor())
+
+	// Update progress and diff stats for all active instances
+	for _, inst := range a.instances {
+		if inst.IsActive() {
+			session.UpdateProgress(inst)
+
+			// Update diff stats
+			if inst.WorktreePath != "" {
+				stats, err := wtMgr.DiffStat(ctx, inst.WorktreePath)
+				if err == nil {
+					inst.DiffAdded = stats.Insertions
+					inst.DiffRemoved = stats.Deletions
+					inst.BranchName = worktree.BranchName(inst.Title)
+				}
+			}
+
+			// Update instance status from tmux status detection
+			if inst.TmuxSession != "" {
+				paneStatus, err := a.statusDetector.Detect(ctx, inst.TmuxSession)
+				if err == nil {
+					switch paneStatus {
+					case tmux.PaneActive:
+						inst.Status = session.StatusRunning
+					case tmux.PaneIdle, tmux.PanePrompt:
+						inst.Status = session.StatusReady
+					}
+				}
+
+				// Auto-yes: approve permission prompts
+				a.autoYes.Check(ctx, inst.TmuxSession)
+			}
+		}
+	}
+
+	// Update instance list display
+	a.instanceList.SetInstances(a.instances)
+
+	// Update menu based on context
+	if a.overlay.IsActive() {
+		a.bottomMenu.SetItems(OverlayMenu(a.overlay.Active))
+	} else if a.instanceList.Selected() == nil {
+		a.bottomMenu.SetItems(NoSelectionMenu())
+	} else {
+		a.bottomMenu.SetItems(DefaultMenu())
+	}
+
+	// Update tab content for selected instance
+	sel := a.instanceList.Selected()
+	if sel != nil {
+		switch a.activeTab {
+		case TabPreview:
+			a.previewTab.Capture(ctx, sel.TmuxSession)
+			a.tabContent.SetPreview(a.previewTab.Content())
+		case TabDiff:
+			a.diffTab.Refresh(ctx, sel.WorktreePath)
+			a.tabContent.SetDiff(a.diffTab.Content())
+		case TabTerminal:
+			a.terminalTab.Capture(ctx, sel.Title)
+			a.tabContent.SetTerminal(a.terminalTab.Content())
+		}
+	} else {
+		a.tabContent.SetPreview("")
+		a.tabContent.SetDiff("")
+		a.tabContent.SetTerminal("")
+	}
 }
 
 func (a *App) updateLayout() {
@@ -260,6 +423,13 @@ func (a App) View() string {
 
 	// Overlay on top
 	if a.overlay.IsActive() {
+		if a.overlay.Active == OverlayFrontierPicker {
+			// Render frontier picker in an overlay frame
+			pickerContent := a.frontierPicker.View()
+			overlayWidth := min(60, a.width-4)
+			rendered := OverlayStyle.Width(overlayWidth).Render(pickerContent)
+			return lipgloss.Place(a.width, a.height, lipgloss.Center, lipgloss.Center, rendered)
+		}
 		return a.overlay.View()
 	}
 
@@ -272,7 +442,16 @@ func (a *App) SetInstances(instances []*session.Instance) {
 	a.instanceList.SetInstances(instances)
 }
 
-func (a *App) createInstance(name string) tea.Cmd {
+// attachCmd suspends the TUI and attaches to a tmux session.
+// Uses tea.Exec to hand control to tmux, then resumes the TUI on detach.
+func (a *App) attachCmd(sessionName string) tea.Cmd {
+	c := osexec.Command("tmux", "attach-session", "-t", sessionName)
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		return attachFinishedMsg{err: err}
+	})
+}
+
+func (a *App) createInstanceCmd(name string) tea.Cmd {
 	return func() tea.Msg {
 		prog := a.program
 		if prog == "" {
@@ -296,17 +475,90 @@ func (a *App) removeInstance(inst *session.Instance) {
 		a.selectedIndex = len(a.instances) - 1
 	}
 	a.instanceList.SetSelected(a.selectedIndex)
-	a.store.Save(a.instances)
+	a.saveState()
+}
+
+// discoverFrontierItems scans the project for available frontiers.
+func (a *App) discoverFrontierItems() []FrontierPickerItem {
+	frontiers, err := frontier.Discover(a.projectRoot)
+	if err != nil {
+		return nil
+	}
+
+	var items []FrontierPickerItem
+	for _, ff := range frontiers {
+		item := FrontierPickerItem{
+			Name:   ff.Name,
+			Path:   ff.Path,
+			Status: frontier.FrontierAvailable,
+		}
+
+		// Try to compute progress
+		f, err := frontier.Parse(ff.Path)
+		if err == nil {
+			implDir := filepath.Join(a.projectRoot, "context", "impl")
+			statuses, err := frontier.TrackStatus(implDir)
+			if err == nil {
+				summary := frontier.ComputeProgress(f, statuses)
+				item.TasksDone = summary.Done
+				item.TasksTotal = summary.Total
+
+				// Classify status
+				wtPath := worktree.WorktreePath(a.projectRoot, ff.Name)
+				item.Status = frontier.ClassifyFrontier(f, statuses, wtPath)
+			}
+		}
+
+		items = append(items, item)
+	}
+	return items
+}
+
+// launchFrontiers creates and starts instances for the selected frontiers.
+func (a *App) launchFrontiers(items []FrontierPickerItem) tea.Cmd {
+	return func() tea.Msg {
+		prog := a.program
+		if prog == "" {
+			prog = "claude"
+		}
+		// Launch first selected item (staggered launch for multiple is handled elsewhere)
+		item := items[0]
+		inst := a.sessionMgr.Create(item.Name, item.Path, item.Name, prog)
+		err := a.sessionMgr.Start(context.Background(), inst, a.projectRoot, item.Name, 3*time.Second)
+		return instanceCreatedMsg{inst: inst, err: err}
+	}
+}
+
+func (a *App) saveState() {
+	if a.store != nil {
+		a.store.Save(a.instances)
+	}
 }
 
 // Run starts the TUI application.
-func Run(projectRoot, program string) error {
-	app := NewApp(projectRoot, program)
-	// Load persisted instances
+func Run(projectRoot, program string, autoYes bool) error {
+	app := NewApp(projectRoot, program, autoYes)
+
+	// Load persisted instances and validate
 	instances, _ := app.store.Load()
 	if len(instances) > 0 {
-		app.instances = instances
-		app.instanceList.SetInstances(instances)
+		ctx := context.Background()
+		tmuxMgr := tmux.NewManager(exec.NewRealExecutor())
+		for _, inst := range instances {
+			// Validate tmux session still exists
+			if inst.TmuxSession != "" && !tmuxMgr.Exists(ctx, inst.TmuxSession) {
+				inst.Status = session.StatusDone
+			}
+		}
+		// Filter out Done instances from previous sessions
+		var active []*session.Instance
+		for _, inst := range instances {
+			if inst.Status != session.StatusDone {
+				active = append(active, inst)
+			}
+		}
+		app.instances = active
+		app.instanceList.SetInstances(active)
 	}
 
 	p := tea.NewProgram(

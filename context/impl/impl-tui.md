@@ -1,23 +1,18 @@
 ---
-created: "2026-03-17T00:00:00Z"
-last_edited: "2026-03-17T00:00:00Z"
+created: "2026-03-17T12:00:00Z"
+last_edited: "2026-03-17T12:00:00Z"
 ---
 # Implementation Tracking: TUI
 
 | Task | Status | Notes |
 |------|--------|-------|
-| T-019 | DONE | Lipgloss styles and constants: colors, panel styles, tab styles, status indicators, menu styles, overlay styles. internal/tui/styles.go. |
-| T-018 | DONE | Bubbletea app shell with alt-screen, mouse, resize, tab switching, j/k navigation, menu bar, 30/70 layout. internal/tui/app.go. |
-| T-024 | DONE | Instance list: status icons, progress display, j/k selection, mouse click. internal/tui/instancelist.go. |
-| T-025 | DONE | Tabbed content: Preview/Diff/Terminal with tab switching and content truncation. internal/tui/tabs.go. |
-| T-026 | DONE | Bottom menu: keyboard shortcuts with visual styling. internal/tui/menu.go. |
-| T-027 | DONE | Overlay components: text input, confirmation, help screen. Esc to close. internal/tui/overlay.go. |
-| T-029 | DONE | Preview tab: tmux pane capture with scroll mode. internal/tui/preview.go. |
-| T-030 | DONE | Diff tab: git diff rendering with syntax coloring, stats header. internal/tui/difftab.go. |
-| T-031 | DONE | Terminal tab: separate tmux session per instance, cached. internal/tui/terminaltab.go. |
-| T-032 | DONE | New instance flow via overlay text input → session.Manager.Create/Start. |
-| T-033 | DONE | Progress display via InstanceList rendering TasksDone/TasksTotal from session.UpdateProgress. |
-| T-035 | DONE | Frontier picker: list available frontiers, multi-select, done strikethrough. internal/tui/frontierpicker.go. |
-| T-036 | DONE | Key handling: MapKey routes all keypresses to actions, respects overlay state. internal/tui/keyhandler.go. |
-| T-037 | DONE | Wire app.Update to route all key events via MapKey to components. |
-| T-038 | DONE | Wire app.View to compose InstanceList + TabContent + BottomMenu + Overlay. |
+| T-043 | DONE | Wired tick loop: onTick captures preview, refreshes diff, updates progress, runs auto-yes, detects status. Added PreviewTab/DiffTab/TerminalTab to App struct. Added session management (sessionMgr, store, autoYes, statusDetector). Added createInstanceCmd, removeInstance, saveState. Added text input overlay handling (ActionTextInput, ActionBackspace). Added ActionScrollUp/Down handling. Added mouse click handling. Added instanceCreatedMsg flow. |
+| T-044 | DONE | Implicitly covered by T-043 — PreviewTab, DiffTab, TerminalTab instantiated in NewApp and piped to TabContent in onTick. |
+| T-045 | DONE | ActionOpen handled: tea.ExecProcess suspends TUI, runs tmux attach-session, resumes on detach. |
+| T-046 | DONE | ActionPush: confirmation overlay, then worktree.Push with --set-upstream. Uses pendingAction to distinguish kill vs push confirms. |
+| T-047 | DONE | ActionCheckout: switches to terminal tab and ensures session in worktree. ActionResume: calls sessionMgr.Resume for paused instances. |
+| T-049 | DONE | FrontierPicker integrated into new-instance flow. 'n' discovers frontiers and shows picker overlay. Multi-select with Space, navigate with j/k, Enter to launch. Falls back to text input if no frontiers found. |
+| T-050 | DONE | Run() validates tmux session existence on load, filters out Done instances. |
+| T-053 | DONE | Instance list shows branch name (+N/-N diff stats) per row. DiffAdded/DiffRemoved/BranchName fields added to Instance. |
+| T-054 | DONE | DiffTab.Content() now applies scrollPos to slice output lines. |
+| T-055 | DONE | Context-adaptive menu: changes items based on overlay type, no selection, or default state. |
