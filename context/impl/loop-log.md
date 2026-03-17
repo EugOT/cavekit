@@ -125,3 +125,11 @@
 - **Files:** internal/frontier/ranking.go, internal/frontier/ranking_test.go
 - **Validation:** Build P, Tests 6/6 P, Acceptance 5/5
 - **Next:** T-018 — Bubbletea app shell (Tier 1, last remaining)
+
+### Iteration 17 — 2026-03-17
+- **Task:** T-019 — Lipgloss styles and constants + T-018 — Bubbletea app shell
+- **Tier:** 1
+- **Status:** DONE
+- **Files:** internal/tui/styles.go, internal/tui/app.go, internal/tui/app_test.go
+- **Validation:** Build P, Tests 8/8 P, Acceptance T-019 3/3, T-018 5/5
+- **Next:** T-009 — PTY-based tmux attach/detach (only remaining Tier 1 task)
