@@ -5,3 +5,11 @@
 - **Files:** go.mod, go.sum, cmd/blueprint/main.go
 - **Validation:** Build P, Tests N/A, Acceptance 4/4
 - **Next:** T-008 — Command executor abstraction
+
+### Iteration 2 — 2026-03-17
+- **Task:** T-008 — Command executor abstraction (for testability)
+- **Tier:** 0
+- **Status:** DONE
+- **Files:** internal/exec/executor.go, internal/exec/mock.go, internal/exec/executor_test.go
+- **Validation:** Build P, Tests 5/5 P, Acceptance 3/3
+- **Next:** T-007 — Session instance model and status enum
