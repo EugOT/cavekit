@@ -152,6 +152,34 @@ if [[ "$IS_WORKTREE" == "false" ]]; then
     echo "📂 Created worktree: $WT_PATH (branch: $BRANCH_NAME)"
   fi
 
+  # ─── Forward .env* files via symlinks (R2: Env Var Forwarding) ──────────
+  # Symlinks auto-reflect changes in project root without manual sync.
+  ENV_FORWARDED=0
+  for env_file in "$PROJECT_ROOT"/.env*; do
+    [[ -f "$env_file" ]] || continue
+    env_basename="$(basename "$env_file")"
+    target="$WT_PATH/$env_basename"
+    if [[ -L "$target" ]]; then
+      # Already a symlink — verify it points to the right place
+      if [[ "$(readlink "$target")" != "$env_file" ]]; then
+        rm -f "$target"
+        ln -s "$env_file" "$target"
+        ENV_FORWARDED=$((ENV_FORWARDED + 1))
+      fi
+    elif [[ -f "$target" ]]; then
+      # Regular file exists — replace with symlink for auto-sync
+      rm -f "$target"
+      ln -s "$env_file" "$target"
+      ENV_FORWARDED=$((ENV_FORWARDED + 1))
+    else
+      ln -s "$env_file" "$target"
+      ENV_FORWARDED=$((ENV_FORWARDED + 1))
+    fi
+  done
+  if [[ $ENV_FORWARDED -gt 0 ]]; then
+    echo "🔗 Forwarded $ENV_FORWARDED .env* file(s) to worktree via symlinks"
+  fi
+
   # Switch to the worktree
   cd "$WT_PATH"
   echo "📂 Working in: $(pwd)"
