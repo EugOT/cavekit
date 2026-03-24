@@ -28,7 +28,7 @@
   <a href="#install">Install</a> &middot;
   <a href="#how-it-works">How It Works</a> &middot;
   <a href="#quick-start">Quick Start</a> &middot;
-  <a href="#parallel-agents">Parallel Agents</a> &middot;
+  <a href="#parallel-execution">Parallel Execution</a> &middot;
   <a href="#commands">Commands</a> &middot;
   <a href="#methodology">Methodology</a> &middot;
   <a href="example.md">Examples</a>
@@ -129,16 +129,16 @@ This registers the Blueprint plugin with Claude Code and installs the `blueprint
 Blueprint follows four phases — **Draft, Architect, Build, Inspect** — each driven by a slash command inside Claude Code.
 
 ```
-  DRAFT            ARCHITECT           BUILD              INSPECT           MERGE
-  ─────            ─────────           ─────              ───────           ─────
-  "What are we     Break into tasks,   The Ralph Loop:    Gap analysis:     Integrate
-   building?"      map dependencies,   implement →        built vs.         branches in
-                   organize into       validate →         intended.         dependency
-  Produces:        tiered build site   commit → repeat    Peer review.      order.
-  blueprints                                              Trace to specs.
-  with R-numbered  Produces:           Produces:                            Produces:
-  requirements     task graph          working software   Produces:         unified main
-                                       + atomic commits   findings report
+  DRAFT            ARCHITECT           BUILD                INSPECT           MERGE
+  ─────            ─────────           ─────                ───────           ─────
+  "What are we     Break into tasks,   Sequential:          Gap analysis:     Integrate
+   building?"      map dependencies,    /bp:build            built vs.         branches in
+                   organize into        one task at a time   intended.         dependency
+  Produces:        tiered build site                         Peer review.      order.
+  blueprints                           Parallel:            Trace to specs.
+  with R-numbered  Produces:            /bp:parallel                          Produces:
+  requirements     task graph           subagents per tier   Produces:         unified main
+                                        wave-by-wave         findings report
 ```
 
 ### 1. Draft — define the what
@@ -256,58 +256,85 @@ See [example.md](example.md) for full annotated conversations.
 
 ---
 
-## Parallel Agents
+## Parallel Execution
 
-The `blueprint` CLI launches multiple Claude Code agents in parallel — each on its own git worktree, each building a different part of the build site simultaneously.
+Blueprint supports two levels of parallelism — pick whichever fits your workflow.
 
-```bash
-blueprint --monitor              # interactive picker → agents in tmux
-blueprint --monitor --expanded   # one tmux window per agent with dashboards
-blueprint --status               # check progress from any terminal
-blueprint --analytics            # iteration trends across cycles
-blueprint --kill                 # stop everything, clean up worktrees
+### In-session: `/bp:parallel`
+
+Dispatches independent tasks as concurrent subagents within a single Claude Code session. No tmux required.
+
+```
+> /bp:parallel
+═══ Wave 1 ═══
+3 task(s) ready for parallel execution:
+  T-001: Database schema (tier 0, deps: none)
+  T-002: Auth middleware (tier 0, deps: none)
+  T-003: Config loader (tier 0, deps: none)
+
+Implementing T-001 directly...
+Dispatching T-002 → subagent (isolated worktree)
+Dispatching T-003 → subagent (isolated worktree)
+
+All 3 tasks complete. Merging branches...
+
+═══ Wave 2 ═══
+2 task(s) ready for parallel execution:
+  T-004: User endpoints (tier 1, deps: T-001, T-002)
+  T-005: Health check (tier 1, deps: T-003)
+...
 ```
 
-### How it works
+How it works:
+- Reads the build site and computes the **frontier** — all tasks whose dependencies are complete
+- Takes the first task, dispatches the rest as subagents with `isolation: "worktree"`
+- Each subagent gets its own git worktree (automatic, managed by Claude Code)
+- After all complete, merges branches and computes the next frontier
+- Repeats wave-by-wave until all tasks are done
 
-The interactive picker shows all build sites grouped by status. Select the ones you want to launch. Each gets:
+Circuit breakers prevent infinite loops: 3 test failures → task marked BLOCKED, 3 blocked tasks → stop and report.
 
+### Multi-session: `blueprint monitor`
+
+Launches multiple Claude Code agents in separate tmux sessions — each on its own worktree, each building a different build site simultaneously.
+
+```bash
+blueprint monitor              # interactive picker → agents in tmux
+blueprint monitor --expanded   # one tmux window per agent with dashboards
+blueprint status               # check progress from any terminal
+blueprint kill                 # stop everything, clean up worktrees
+```
+
+Each agent gets:
 - Its own **git worktree** (branch: `blueprint/<site-name>`)
 - A **tmux pane** running Claude Code with `/bp:build`
 - Live status tracking with progress bars and commit feeds
 - Staggered launch (5s between agents) to avoid API rate limits
 
-### Expanded mode
-
-In expanded mode (`--expanded`), each agent gets a full tmux window with three panes:
+In expanded mode, each agent gets a full tmux window:
 
 ```
 ┌─────────────────────────────────┬──────────────────────┐
 │                                 │  PROGRESS            │
-│                                 │                      │
 │   Claude Code                   │  Tasks: 12/34 (35%)  │
 │   running /bp:build             │  Tier:  2 of 5       │
 │                                 │  ████████░░░░░░ 35%  │
 │                                 ├──────────────────────┤
 │                                 │  ACTIVITY            │
-│                                 │                      │
 │                70%              │  [12:03] T-012 done  │
 │                                 │  [12:01] T-011 done  │
 │                                 │  [11:58] T-010 done  │
-│                                 │          30%         │
 └─────────────────────────────────┴──────────────────────┘
 ```
 
-Switch between agents with `Ctrl-b <number>`.
+### When to use which
 
-### Analytics
-
-`blueprint --analytics` parses loop logs across all cycles and worktrees:
-
-- Iterations to convergence per cycle
-- Task outcomes (done / partial / blocked)
-- Failure patterns and dead ends
-- Tier distribution and completion velocity
+| Scenario | Use |
+|----------|-----|
+| Single build site, many independent tasks per tier | `/bp:parallel` |
+| Multiple build sites that can run independently | `blueprint monitor` |
+| Small build (< 8 tasks) | `/bp:build` (sequential is fine) |
+| First time with Blueprint | `/bp:build` (understand the loop first) |
 
 ---
 
@@ -320,6 +347,7 @@ Switch between agents with `Ctrl-b <number>`.
 | `/bp:draft` | Draft | Decompose requirements into domain blueprints |
 | `/bp:architect` | Architect | Generate a tiered build site from blueprints |
 | `/bp:build` | Build | Run the Ralph Loop — implement, validate, commit, repeat |
+| `/bp:parallel` | Build | Execute tasks in parallel — subagents per frontier wave |
 | `/bp:inspect` | Inspect | Gap analysis + peer review against blueprints |
 | `/bp:merge` | Ship | Blueprint-aware branch integration |
 | `/bp:progress` | — | Check build site progress |
@@ -331,11 +359,11 @@ Switch between agents with `Ctrl-b <number>`.
 
 | Command | Description |
 |---------|-------------|
-| `blueprint --monitor` | Interactive picker → parallel agents in tmux |
-| `blueprint --monitor --expanded` | One window per agent with dashboards |
-| `blueprint --status` | Check build site progress |
-| `blueprint --analytics` | Iteration trends across cycles |
-| `blueprint --kill` | Stop all agents, clean up worktrees |
+| `blueprint monitor` | Interactive picker → parallel agents in tmux |
+| `blueprint monitor --expanded` | One window per agent with dashboards |
+| `blueprint status` | Check progress across all worktrees |
+| `blueprint kill` | Stop all agents, clean up worktrees |
+| `blueprint version` | Print version |
 
 ---
 
@@ -370,7 +398,7 @@ Blueprint is built on a simple observation: LLMs are non-deterministic, but soft
 | **Implementation tracking** | Lab notebook — what was tried, what worked, what failed |
 | **Revision** | Update the hypothesis — trace bugs back to blueprints |
 
-The plugin ships with 13 deep-dive skills covering the full methodology:
+The plugin ships with 8 specialized agents (builder, task-builder, architect, drafter, inspector, surveyor, blueprint-reviewer, convergence-monitor) and 13 deep-dive skills covering the full methodology:
 
 <details>
 <summary><strong>View all skills</strong></summary>
