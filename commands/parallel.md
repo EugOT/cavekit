@@ -97,7 +97,7 @@ INSTRUCTIONS:
 3. Implement the task following the plan's steps
 4. Write tests as needed
 5. Run validation: build must pass, tests must pass
-6. Commit with message: '{task_id}: {description}'
+6. CRITICAL: Commit with message '{task_id}: {description}' BEFORE reporting — your worktree is auto-deleted when you finish. Uncommitted work is lost.
 7. Report your result as:
    TASK RESULT:
    - Task: {id} — {title}
@@ -110,11 +110,13 @@ INSTRUCTIONS:
 ```
 
 3. **Wait for all subagents to complete** (they run concurrently)
-4. **Merge results**: For each subagent that made changes:
-   - The Agent tool with `isolation: "worktree"` returns the worktree branch
+4. **Merge results**: Claude Code automatically cleans up subagent worktrees on completion, but the **branches and commits persist** in git. For each subagent that made changes:
+   - The Agent tool result includes the branch name (e.g., `worktree/agent-abc123`)
+   - Fetch the branch: `git fetch . <branch>` (may not be needed if local)
    - Merge each branch into your current branch: `git merge <branch> --no-edit`
    - If merge conflicts occur, resolve them using blueprint context (understand what each task intended)
-   - After merging, remove the worktree branch: `git branch -D <branch>`
+   - After successful merge, clean up the branch: `git branch -D <branch>`
+   - If the Agent result says "no changes were made", skip — the worktree was already cleaned up with nothing to merge
 
 ### 3e. Update Tracking
 After all tasks in the wave complete (both your own and subagents'):

@@ -43,9 +43,10 @@ If a gate fails:
 - Fix the issue if within scope and time guard
 - If stuck after 3 attempts, document the issue and stop
 
-### 4. Commit
+### 4. Commit (CRITICAL — do this before reporting)
 - Stage only files relevant to this task
 - Commit message: `T-{ID}: {what was done}`
+- **You MUST commit before finishing** — your worktree is automatically deleted when you complete. If you don't commit, all work is lost.
 - Never push to remote
 
 ### 5. Report
