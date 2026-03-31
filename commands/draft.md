@@ -21,7 +21,7 @@ Parse `$ARGUMENTS`:
 
 Create these if missing (no separate init needed):
 - `context/blueprints/`
-- `context/sites/`
+- `context/plans/`
 - `context/impl/`
 - `context/impl/archive/`
 - `context/refs/`

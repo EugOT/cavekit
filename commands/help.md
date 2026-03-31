@@ -8,7 +8,8 @@ description: Show Blueprint commands and usage
 ## The Workflow
 
 ```
-/bp:draft      →  write blueprints (the WHAT)
+/bp:init        →  bootstrap context hierarchy (optional, /bp:draft does this too)
+/bp:draft       →  write blueprints (the WHAT)
 /bp:architect   →  generate site (the ORDER)
 /bp:build       →  ralph loop (the BUILD)
 /bp:inspect     →  gap analysis + peer review (the CHECK)
@@ -25,6 +26,14 @@ description: Show Blueprint commands and usage
 Streamlined draft + architect (no interactive Q&A, no user gates) followed by the full build and inspect. Best for small-to-medium features where you trust the decomposition.
 
 ## Commands
+
+### `/bp:init` — Bootstrap Context Hierarchy
+
+```bash
+/bp:init                         # create all context dirs, CLAUDE.md files, index files
+```
+
+Creates the full context hierarchy for a Blueprint project. Idempotent — only creates what's missing. Detects legacy `context/sites/` layout and offers migration to `context/plans/`.
 
 ### `/bp:draft` — Write Blueprints
 
@@ -44,7 +53,7 @@ Decomposes your project into domains, writes `context/blueprints/blueprint-{doma
 /bp:architect --filter v2        # only v2 blueprints
 ```
 
-Reads blueprints, decomposes requirements into tasks, organizes into dependency tiers. Writes `context/sites/build-site.md`. No domain plans — just tasks and dependencies.
+Reads blueprints, decomposes requirements into tasks, organizes into dependency tiers. Writes `context/plans/build-site.md`. No domain plans — just tasks and dependencies.
 
 ### `/bp:build` — Run the Loop
 
@@ -108,7 +117,7 @@ These still work but are superseded by the three main commands:
 
 | Command | Replaced by |
 |---------|-------------|
-| `/blueprint init` | `/bp:draft` creates directories automatically |
+| `/blueprint init` | `/bp:init` (or `/bp:draft` creates directories automatically) |
 | `/blueprint spec-from-refs` | `/bp:draft context/refs/` |
 | `/blueprint spec-from-code` | `/bp:draft --from-code` |
 | `/blueprint plan-from-specs` | `/bp:architect` (generates site directly, no domain plans) |

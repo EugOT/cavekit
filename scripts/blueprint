@@ -69,7 +69,7 @@ do_status() {
   local found=false
 
   # Check for frontier files in the project directory
-  for frontier in "$PROJECT_ROOT"/context/frontiers/*frontier*.md "$PROJECT_ROOT"/context/sites/*site*.md; do
+  for frontier in "$PROJECT_ROOT"/context/plans/*site*.md "$PROJECT_ROOT"/context/sites/*site*.md "$PROJECT_ROOT"/context/frontiers/*frontier*.md; do
     [[ -f "$frontier" ]] || continue
     found=true
     local name

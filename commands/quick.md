@@ -34,7 +34,7 @@ Streamlined version of `/bp:draft` — no interactive Q&A, no approach proposals
 
 ### 1a: Ensure Directories
 
-Create if missing: `context/blueprints/`, `context/sites/`, `context/impl/`, `context/impl/archive/`, `context/refs/`
+Create if missing: `context/blueprints/`, `context/plans/`, `context/impl/`, `context/impl/archive/`, `context/refs/`
 
 ### 1b: Explore Context
 
@@ -89,7 +89,7 @@ Read all blueprint files just written.
 
 1. Decompose requirements into T-numbered tasks
 2. Organize into dependency tiers
-3. Write `context/sites/build-site.md` with the standard format (tier tables + Mermaid graph)
+3. Write `context/plans/build-site.md` with the standard format (tier tables + Mermaid graph)
 
 **Quick Architect Rules:**
 - Tasks should be M-sized, not XL

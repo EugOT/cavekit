@@ -11,9 +11,9 @@ Finding site files, parsing their task structure, and tracking task completion f
 ## Requirements
 
 ### R1: Site Discovery
-**Description:** Find site files in the project's `context/sites/` directory (or legacy `context/frontiers/`).
+**Description:** Find site files in the project's `context/plans/` directory (with fallback to legacy `context/sites/` and `context/frontiers/`).
 **Acceptance Criteria:**
-- [ ] Scans `context/sites/` (and `context/frontiers/` for backwards compatibility) for `*.md` files containing "site" or "frontier" in the name
+- [ ] Scans `context/plans/` first, then `context/sites/`, then `context/frontiers/` for `*.md` files containing "site" or "frontier" in the name
 - [ ] Excludes files in archive subdirectories
 - [ ] Returns list of site paths with derived names using the canonical derivation: strip `plan-`, `build-site-`, `feature-` prefixes, then strip `-?frontier-?` or `-?site-?` anywhere, then strip leading/trailing hyphens. Empty result defaults to `execute`
 - [ ] Name derivation logic MUST be identical across all scripts that map site filenames to worktree paths

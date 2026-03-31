@@ -25,8 +25,10 @@ count_frontier_progress() {
 
   # Find frontier file in project directory
   local frontier=""
-  for f in "$project_dir"/context/sites/*site*.md; do
-    [[ -f "$f" ]] && frontier="$f" && break
+  for search_dir in "$project_dir/context/plans" "$project_dir/context/sites"; do
+    for f in "$search_dir"/*site*.md; do
+      [[ -f "$f" ]] && frontier="$f" && break 2
+    done
   done
   [[ -z "$frontier" ]] && echo "?/?" && return
 

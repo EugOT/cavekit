@@ -41,13 +41,16 @@ type SiteFile struct {
 	Name string // Derived name (used for worktree/branch naming)
 }
 
-// Discover scans context/sites/ (or context/frontiers/) for site markdown files.
+// Discover scans for site markdown files in the following resolution order:
+//   1. context/plans/   (current convention)
+//   2. context/sites/   (legacy, kept for backward compatibility)
+//   3. context/frontiers/ (oldest legacy)
+//
 // Excludes archive/ subdirectory.
 func Discover(projectRoot string) ([]SiteFile, error) {
 	var results []SiteFile
 
-	// Try both directory names (sites is the newer convention, frontiers is legacy)
-	for _, dir := range []string{"context/sites", "context/frontiers"} {
+	for _, dir := range []string{"context/plans", "context/sites", "context/frontiers"} {
 		siteDir := filepath.Join(projectRoot, dir)
 		entries, err := os.ReadDir(siteDir)
 		if err != nil {

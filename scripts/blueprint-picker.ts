@@ -29,9 +29,13 @@ function getProjectRoot(): string {
 }
 
 function discoverFrontiers(projectRoot: string): FrontierInfo[] {
-  const frontiersDir = join(projectRoot, "context/sites");
+  // Try context/plans first (current convention), fall back to context/sites (legacy)
+  let frontiersDir = join(projectRoot, "context/plans");
   if (!existsSync(frontiersDir)) {
-    return [];
+    frontiersDir = join(projectRoot, "context/sites");
+    if (!existsSync(frontiersDir)) {
+      return [];
+    }
   }
 
   const results: FrontierInfo[] = [];
@@ -180,7 +184,7 @@ async function main() {
   const frontiers = discoverFrontiers(projectRoot);
 
   if (frontiers.length === 0) {
-    console.error("No frontiers found in context/sites/");
+    console.error("No frontiers found in context/plans/ or context/sites/");
     console.error("Run /bp:architect first to generate one.");
     process.exit(1);
   }

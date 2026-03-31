@@ -85,24 +85,31 @@ rm -f .claude/ralph-loop.local.md
 # ─── Find build site ────────────────────────────────────────────────────────
 #
 # Strategy:
-#   1. Only search context/sites/ (not context/plans/ — false positives)
-#   2. Exclude archive/ subdirectory (completed builds)
-#   3. If --filter is set, match filter anywhere in filename
-#   4. If multiple candidates, list them for user selection
-#   5. If exactly one, auto-select it
+#   1. Search context/plans/ first (current convention)
+#   2. Fall back to context/sites/ (legacy, backward compatible)
+#   3. Exclude archive/ subdirectory (completed builds)
+#   4. If --filter is set, match filter anywhere in filename
+#   5. If multiple candidates, list them for user selection
+#   6. If exactly one, auto-select it
 
 FRONTIER_FILE=""
 ALL_CANDIDATES=()
+SITE_DIR=""
 
-if [[ -d "context/sites" ]]; then
-  while IFS= read -r -d '' f; do
-    # Skip archive directory
-    [[ "$f" == *"/archive/"* ]] && continue
-    # Skip non-site files (must have "site" in name)
-    [[ "$(basename "$f")" != *site* ]] && continue
-    ALL_CANDIDATES+=("$f")
-  done < <(find "context/sites" -maxdepth 1 -name "*.md" -type f -print0 2>/dev/null | sort -z)
-fi
+for candidate_dir in "context/plans" "context/sites"; do
+  if [[ -d "$candidate_dir" ]]; then
+    while IFS= read -r -d '' f; do
+      # Skip archive directory
+      [[ "$f" == *"/archive/"* ]] && continue
+      # Skip non-site files (must have "site" in name)
+      [[ "$(basename "$f")" != *site* ]] && continue
+      ALL_CANDIDATES+=("$f")
+    done < <(find "$candidate_dir" -maxdepth 1 -name "*.md" -type f -print0 2>/dev/null | sort -z)
+    if [[ ${#ALL_CANDIDATES[@]} -gt 0 && -z "$SITE_DIR" ]]; then
+      SITE_DIR="$candidate_dir"
+    fi
+  fi
+done
 
 # Apply filter if set — match filter anywhere in filename
 CANDIDATES=()
@@ -125,11 +132,8 @@ if [[ ${#ALL_CANDIDATES[@]} -gt 0 ]]; then
 fi
 
 if [[ ${#CANDIDATES[@]} -eq 0 ]]; then
-  echo "❌ No build site found in context/sites/" >&2
+  echo "❌ No build site found in context/plans/ or context/sites/" >&2
   echo "   Run /bp:architect first to generate one." >&2
-  if [[ -d "context/plans" ]] && find "context/plans" -name "*site*" -type f 2>/dev/null | grep -q .; then
-    echo "   (Found frontier files in context/plans/ — move them to context/sites/)" >&2
-  fi
   exit 1
 fi
 

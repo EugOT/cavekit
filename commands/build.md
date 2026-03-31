@@ -139,6 +139,31 @@ Waves executed: {N}
 Tasks completed: {done}/{total}
 ```
 
+### Post-Build: Update CLAUDE.md Hierarchy
+
+After BUILD COMPLETE and before the completion promise, update the context hierarchy:
+
+1. **Read the build site** to get task-to-blueprint-requirement mappings
+2. **Read `git diff --name-only` against the pre-build ref** to identify which source files were created/modified during the build
+3. **For each source directory that was touched** (e.g., `src/auth/`, `src/api/`):
+   - If no `CLAUDE.md` exists in that directory: create one with blueprint/plan references derived from the tasks that touched those files:
+     ```markdown
+     # {Module Name}
+
+     Implements:
+     - blueprint-{domain}.md R{n} ({Requirement Name})
+
+     Build tasks: T-{ids} (build-site.md)
+     ```
+   - If `CLAUDE.md` already exists: append any new blueprint references not already listed (never remove existing content)
+4. **Update `context/impl/impl-overview.md`** with current domain statuses (tasks done/total per domain)
+5. **Update `context/plans/plan-overview.md`** (or `context/sites/` equivalent if legacy) with build site completion status
+
+**Constraints:**
+- Only write mappings you are certain about — tasks you completed and files you created
+- Never remove existing content from a CLAUDE.md
+- Source-tree CLAUDE.md files are kept minimal (references only, no duplicated content)
+
 Then output the completion promise from the ralph prompt.
 
 ## Circuit Breakers

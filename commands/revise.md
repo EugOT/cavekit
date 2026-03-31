@@ -42,12 +42,13 @@ For each commit classified as a manual fix, determine:
 
 ## Step 3: Map Changes to Blueprint Requirements
 
-For each manual fix, identify which blueprint requirements are affected:
+For each manual fix, identify which blueprint requirements are affected using the CLAUDE.md hierarchy as the primary traversal path:
 
-1. **Read all blueprints** in `context/blueprints/` to build a requirement index (blueprint file → R-numbers → descriptions)
-2. **Read the build site** in `context/sites/` to map tasks → requirements → blueprints
-3. **Match changed files** to tasks in the build site (check task titles, impl tracking files, and git blame for task-ID references in commit messages)
-4. **Identify affected requirements** by tracing: changed file → task → requirement → blueprint
+1. **Check source-tree CLAUDE.md files first** — for each changed file, read the nearest `CLAUDE.md` in its directory (or parent directories). These files contain direct blueprint references like "implements blueprint-auth.md R2". This is the fastest path to the affected requirements.
+2. **Read all blueprints** in `context/blueprints/` to build a requirement index (blueprint file → R-numbers → descriptions)
+3. **Read the build site** in `context/plans/` (or `context/sites/` for legacy projects) to map tasks → requirements → blueprints
+4. **Match changed files** to tasks in the build site (check task titles, impl tracking files, and git blame for task-ID references in commit messages)
+5. **Identify affected requirements** by tracing: changed file → CLAUDE.md → blueprint requirement → blueprint
 
 For each affected requirement, record:
 | Blueprint | Requirement | Current Description | What Changed | Needs Update? |
@@ -62,7 +63,8 @@ For each affected requirement, record:
 ## Step 3b: Discover Governing Plan Files
 
 For each changed source file, determine which plan file governs it:
-- Search `context/plans/` for plan files that reference the changed paths
+- First check the directory's `CLAUDE.md` for build task references (e.g., "Build tasks: T-004, T-005")
+- Search `context/plans/` (or `context/sites/` for legacy projects) for plan files that reference the changed paths
 - If no plan covers the file, flag it as an **untracked file** (potential blueprint gap)
 
 ## Step 4: Update Blueprints and Context Files
@@ -87,10 +89,14 @@ Changelog rules:
 - The requirements section must contain only current-state descriptions (no "was previously X")
 - History lives exclusively in the changelog
 
-### Plan Updates (context/plans/)
+### Plan Updates (context/plans/ or context/sites/ for legacy)
 - If the plan missed a task, add it with proper T- prefix and dependencies
 - If the plan had incorrect sequencing, fix the dependency graph
 - Update plan-known-issues.md if the fix reveals a systemic issue
+
+### Source-Tree CLAUDE.md Updates
+- If the fix affects a module whose `CLAUDE.md` doesn't reference the relevant blueprint requirement, add the reference
+- If a new source directory was created, create a `CLAUDE.md` with the appropriate blueprint references
 
 ### Impl Tracking Updates (context/impl/)
 - Record the manual fix in the relevant impl tracking file
@@ -110,7 +116,7 @@ Only update the overview if individual blueprints were actually modified. If no 
 
 ## Step 4c: Detect Build Site Drift (R4: Drift Detection)
 
-After updating blueprints, scan the build site(s) in `context/sites/` and report any drift:
+After updating blueprints, scan the build site(s) in `context/plans/` (or `context/sites/` for legacy projects) and report any drift:
 
 1. **Stale tasks** — Tasks whose parent requirement text no longer matches the blueprint (show old vs new)
 2. **Orphaned tasks** — Tasks whose parent requirement was removed entirely
@@ -153,6 +159,7 @@ Generate a summary report:
 - blueprints: {list of updated blueprint files}
 - plans: {list of updated plan files}
 - impl: {list of updated impl files}
+- CLAUDE.md: {list of source-tree CLAUDE.md files created or updated}
 
 ### Test Results
 - Pass: {count}

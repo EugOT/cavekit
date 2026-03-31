@@ -47,9 +47,9 @@ Organize tasks into tiers:
 
 ## Step 5: Write the Site
 
-Create the `context/sites/` directory if it doesn't exist.
+Create the `context/plans/` directory if it doesn't exist.
 
-Write `context/sites/build-site.md`:
+Write `context/plans/build-site.md`:
 
 ```markdown
 ---

@@ -93,9 +93,12 @@ render() {
 
   # ── Find frontier ──
   local frontier=""
-  if [[ -d "context/sites" ]]; then
-    frontier=$(find "context/sites" -maxdepth 1 \( -name "*site*.md" -o -name "*site*.md" \) -type f 2>/dev/null | grep -v '/archive/' | sort | head -1)
-  fi
+  for search_dir in "context/plans" "context/sites"; do
+    if [[ -d "$search_dir" ]]; then
+      frontier=$(find "$search_dir" -maxdepth 1 -name "*site*.md" -type f 2>/dev/null | grep -v '/archive/' | sort | head -1)
+      [[ -n "$frontier" ]] && break
+    fi
+  done
 
   if [[ -z "$frontier" ]]; then
     emit "  ${D}No frontier found${R}"
