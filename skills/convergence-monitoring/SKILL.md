@@ -10,7 +10,7 @@ description: >
 
 # Convergence Monitoring
 
-Convergence monitoring answers the most important question in iterative AI development: **when should you stop iterating?** The answer is not a fixed number of iterations or a time limit -- it is convergence. Convergence means the agent's output is stabilizing; each iteration produces fewer and smaller changes than the last.
+Convergence monitoring answers the most important question in iterative AI development: **when should you stop iterating?** Not a fixed number of iterations or a time limit -- convergence. Convergence means the agent's output is stabilizing; each iteration produces fewer and smaller changes than the last.
 
 **Core insight:** You don't need a zero-diff -- you need the remaining modifications to be inconsequential.
 
@@ -18,7 +18,7 @@ Convergence monitoring answers the most important question in iterative AI devel
 
 ## 1. What Is Convergence?
 
-Convergence appears as a rapid, consistent decline in the volume of changes from one iteration to the next:
+Convergence appears as a rapid, consistent decline in the volume of changes per iteration:
 
 ```
 Iteration 1:  ████████████████████████████████████████  300 lines changed
@@ -35,7 +35,7 @@ Iteration 4:  ██                                         10 lines changed (c
 | **Lines changed decreasing exponentially** | Each iteration makes roughly half the changes of the previous one |
 | **Changes become trivial** | Remaining changes are formatting, comments, imports -- not behavior |
 | **Tests stabilize** | Test count stops increasing; pass rate approaches 100% |
-| **No new files created** | The architecture has settled; only existing files are modified |
+| **No new files created** | Architecture has settled; only existing files are modified |
 | **Impl tracking updates shrink** | Implementation tracking changes are status updates, not new findings |
 | **Completion signal emitted** | Agent determines all exit criteria are met |
 
@@ -123,7 +123,7 @@ Check 4: Is the agent producing meaningful error messages?
 
 ## 3. Non-Convergence Signals
 
-Non-convergence means the agent is making changes, but they are NOT decreasing. The system is not stabilizing.
+Non-convergence means the agent makes changes but they are NOT decreasing. The system is not stabilizing.
 
 ```
 Non-convergence:
@@ -208,11 +208,11 @@ git diff --name-only HEAD~1 | wc -l
 
 ## 5. Forward Progress Metrics
 
-For large projects where full convergence takes many iterations, track forward progress toward eventual convergence.
+For large projects where full convergence takes many iterations, track forward progress.
 
 ### Spec requirement coverage
 
-The percentage of spec requirements with passing tests:
+Percentage of spec requirements with passing tests:
 
 ```
 Spec Requirements Coverage:
@@ -236,7 +236,7 @@ Spec Requirements Coverage:
 
 ### Iteration velocity
 
-Track how much progress each iteration makes:
+Track progress per iteration:
 
 ```
 | Iteration | Requirements Met | New This Iteration | Velocity |
@@ -250,7 +250,7 @@ Track how much progress each iteration makes:
 | 7         | 76/80           | 3                 | 3        |
 ```
 
-Velocity should decrease over time (easy requirements first, hard ones last), but should never hit zero. Zero velocity = ceiling.
+Velocity should decrease over time (easy requirements first, hard ones last), but never hit zero. Zero velocity = ceiling.
 
 ---
 

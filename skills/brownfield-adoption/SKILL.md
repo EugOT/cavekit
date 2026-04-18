@@ -10,33 +10,31 @@ description: >
 
 # Brownfield Adoption: Adding Cavekit to Existing Codebases
 
-Brownfield adoption layers kits on top of existing code without rewriting it. The existing codebase becomes reference material, and kits are reverse-engineered from what the code actually does. Once kits exist, all future changes flow through the Cavekit lifecycle.
+Brownfield adoption layers kits on top of existing code without rewriting it. The codebase becomes reference material; kits are reverse-engineered from what the code actually does. Once kits exist, all future changes flow through the Cavekit lifecycle.
 
-**Core principle:** The existing code is not the enemy -- it is the source of truth for cavekit generation. Respect what works; cavekit what matters.
+**Core principle:** Existing code is the source of truth for cavekit generation. Respect what works; cavekit what matters.
 
 ---
 
 ## 1. When to Use Brownfield Adoption
 
-Brownfield adoption is the right choice when:
+Use brownfield adoption when:
 
-- You have a **working codebase** that you want to improve incrementally
+- You have a **working codebase** to improve incrementally
 - You want to adopt Cavekit **without stopping development**
 - The codebase is too large or critical for a full rewrite
-- You want **traceability** between kits and code for future changes
+- You need **traceability** between kits and code for future changes
 - You need to **onboard AI agents** to an existing project safely
 - The team wants to start with Cavekit on a subset of the codebase
 
-**Brownfield is NOT the right choice when:**
-- You are migrating to a completely different framework (use a deliberate rewrite instead)
-- The existing code is so broken that kits would just document bugs
-- The codebase is being sunset or replaced
+**Brownfield is NOT right when:**
+- Migrating to a completely different framework (use deliberate rewrite)
+- Existing code is so broken that kits would just document bugs
+- Codebase is being sunset or replaced
 
 ---
 
 ## 2. Brownfield vs Deliberate Rewrite
-
-Before starting, decide which approach fits your situation:
 
 | Dimension | Incremental Adoption | Clean-Slate Rebuild |
 |-----------|---------------------|---------------------|
@@ -67,7 +65,7 @@ Is the existing code fundamentally sound?
 
 ### Step 1: Set Up the Context Directory
 
-Create the standard Cavekit context directory structure alongside your existing codebase:
+Create the standard Cavekit context directory structure:
 
 ```bash
 mkdir -p context/{refs,kits,plans,impl,prompts}
@@ -93,7 +91,7 @@ your-project/
         +-- 000-generate-kits-from-code.md   # Bootstrap prompt (this step)
 ```
 
-**Create `context/refs/architecture-overview.md`** with a high-level description of the existing system:
+**Create `context/refs/architecture-overview.md`** describing the existing system:
 
 ```markdown
 # Architecture Overview
@@ -122,7 +120,7 @@ your-project/
 
 ### Step 2: Designate the Codebase as Reference Material
 
-The existing codebase itself becomes the reference material. Unlike greenfield projects (where refs are PRDs or language specs), brownfield refs are the living code.
+The existing codebase becomes the reference material. Unlike greenfield (where refs are PRDs or language specs), brownfield refs are the living code.
 
 **In `context/refs/`, add a pointer:**
 
@@ -152,7 +150,7 @@ The existing source code at `src/` is the primary reference material for spec ge
 
 ### Step 3: Create the Bootstrap Prompt (000)
 
-The bootstrap prompt is numbered `000` because it runs first and only once. It reverse-engineers kits from the existing code.
+The bootstrap prompt is numbered `000` because it runs first and only once. It reverse-engineers kits from existing code.
 
 ```markdown
 # 000: Generate Kits from Existing Code (Brownfield Bootstrap)
@@ -219,16 +217,16 @@ iteration-loop context/prompts/000-generate-kits-from-code.md -n 5 -t 1h
 ```
 
 **What happens during iteration:**
-- **Iteration 1:** Agent explores codebase, generates initial kits (broad but shallow)
-- **Iteration 2:** Agent refines kits based on git history from iteration 1, adds detail
-- **Iteration 3:** Agent validates kits against code, fills coverage gaps
+- **Iteration 1:** Explore codebase, generate initial kits (broad but shallow)
+- **Iteration 2:** Refine kits based on git history, add detail
+- **Iteration 3:** Validate kits against code, fill coverage gaps
 - **Iterations 4-5:** Convergence -- minor refinements, polishing cross-references
 
-**Watch for convergence:** Kits should stabilize after 3-5 iterations. If they do not, the codebase may be too large for a single prompt. Split into domain-specific bootstrap prompts.
+**Watch for convergence:** Kits should stabilize after 3-5 iterations. If not, the codebase may be too large for a single prompt. Split into domain-specific bootstrap prompts.
 
 ### Step 5: Validate Kits Match Behavior
 
-After the bootstrap prompt converges, validate that the generated kits accurately describe the existing code:
+After convergence, validate that generated kits accurately describe the existing code:
 
 #### 5a. Run tests against kits
 
@@ -346,7 +344,7 @@ Run each independently, then create a manual `cavekit-overview.md` that ties the
 
 ### Challenge: No existing tests
 
-**Solution:** The bootstrap prompt generates kits from code behavior, not tests. After kits exist, use the implementation prompt to generate tests:
+**Solution:** The bootstrap generates kits from code behavior, not tests. After kits exist, use the implementation prompt to generate tests:
 
 ```bash
 # After bootstrap, generate tests from kits
@@ -388,7 +386,7 @@ iteration-loop context/prompts/003-generate-impl-from-plans.md -n 5 -t 1h
 1. Pick ONE upcoming feature
 2. Write a cavekit before implementing it
 3. Show how the cavekit caught issues the team would have missed
-4. Gradually expand Cavekit coverage based on demonstrated value
+4. Gradually expand coverage based on demonstrated value
 
 ---
 
@@ -406,13 +404,13 @@ your-small-project/
         +-- plan-task.md          # One plan for the current task
 ```
 
-**No prompts directory needed.** Just write a focused cavekit and plan, then use the iteration loop against the plan.
+**No prompts directory needed.** Write a focused cavekit and plan, then use the iteration loop against the plan.
 
 **Why bother for small projects?**
 - The cavekit catches requirements you would have missed
 - The plan sequences work so the agent does not thrash
 - If the project grows, you already have the structure in place
-- It is much easier to scale up from lightweight Cavekit than to retrofit full Cavekit later
+- Much easier to scale up from lightweight than to retrofit full Cavekit later
 
 ### Lightweight Cavekit process
 
@@ -425,7 +423,7 @@ your-small-project/
 
 ## 7. Transition Milestones
 
-Track your brownfield adoption progress with these milestones:
+Track brownfield adoption progress:
 
 ```markdown
 ## Brownfield Adoption Progress

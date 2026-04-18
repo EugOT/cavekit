@@ -14,12 +14,12 @@ description: |
 
 **Always define what you want before telling agents how to build it. Go through a cavekit stage — never jump straight from raw requirements to implementation.**
 
-Cavekit is a methodology for building software with AI coding agents that **puts kits at the center of the development process — code is derived from them, not the other way around**. Whether starting from scratch or modernizing an existing system, the principle is the same:
+Cavekit is a methodology for building software with AI coding agents that **puts kits at the center — code is derived from them, not the other way around**. Whether starting from scratch or modernizing an existing system:
 
 - **Greenfield projects:** reference material → kits → code
 - **Rewrites:** old code → kits → new code
 
-In both cases, the kits become a living contract that agents consume to continuously build, validate, and refine the application.
+Kits become a living contract that agents consume to continuously build, validate, and refine the application.
 
 ### Why Kits Are the First-Class Citizen
 
@@ -37,26 +37,26 @@ In both cases, the kits become a living contract that agents consume to continuo
 
 ## The Scientific Method Analogy
 
-LLMs are inherently non-deterministic — like running an experiment, each individual call may yield different results. But through the right methodology — clear hypotheses, controlled conditions, and repeated trials — we extract reliable, reproducible outcomes from a stochastic process.
+LLMs are inherently non-deterministic — each call may yield different results. The right methodology — clear hypotheses, controlled conditions, repeated trials — extracts reliable outcomes from a stochastic process.
 
 **Cavekit applies the scientific method to software construction — hypothesize, test, observe, refine.**
 
 | Layer | Analogy | What It Does |
 |-------|---------|-------------|
 | **LLM calls** | Individual experiments | Each run may produce different results; no single output is authoritative |
-| **Kits** | Hypotheses | Define what you expect to observe — the predicted behavior |
+| **Kits** | Hypotheses | Define expected observations — predicted behavior |
 | **Validation gates** | Controlled conditions | Ensure reproducibility by constraining what counts as a valid outcome |
 | **Convergence loops** | Repeated trials | Build statistical confidence through successive passes |
-| **Implementation tracking** | Lab notebook | Record what was tried, what worked, and what failed |
+| **Implementation tracking** | Lab notebook | Record what was tried, what worked, what failed |
 | **Revision** | Revising the hypothesis | When results contradict expectations, update the theory upstream |
 
-The outcome: a disciplined, repeatable engineering process layered on top of probabilistic generation.
+Outcome: a disciplined, repeatable engineering process layered on top of probabilistic generation.
 
 ---
 
 ## The 5 Hunt Phases
 
-The Hunt is the four-phase lifecycle: **Sketch, Map, Make, Check**. Each phase has dedicated prompts that drive it.
+The Hunt is the four-phase lifecycle: **Sketch, Map, Make, Check**. Each phase has dedicated prompts.
 
 | Phase | Input | Output | AI Role | Human Role |
 |-------|-------|--------|---------|------------|
@@ -68,15 +68,15 @@ The Hunt is the four-phase lifecycle: **Sketch, Map, Make, Check**. Each phase h
 
 ### Phase Transitions
 
-Each phase has **gate conditions** that must be met before moving to the next:
+Each phase has **gate conditions** before moving to the next:
 
-1. **Draft → Architect:** All domains have kits with testable acceptance criteria. Human has reviewed for completeness.
-2. **Architect → Build:** Plans reference kits, define implementation sequence, and include test strategies. Architecture decisions validated.
-3. **Build → Inspect:** Code builds, tests pass at current coverage level, implementation tracking is up to date.
-4. **Inspect → Monitor:** Convergence detected (changes decreasing iteration-over-iteration). Remaining changes are trivial.
-5. **Monitor → Draft (cycle):** Gap found or new requirement identified. Revise kits and restart the cycle.
+1. **Draft → Architect:** All domains have kits with testable acceptance criteria. Human reviewed for completeness.
+2. **Architect → Build:** Plans reference kits, define implementation sequence, include test strategies. Architecture decisions validated.
+3. **Build → Inspect:** Code builds, tests pass at current coverage level, implementation tracking is current.
+4. **Inspect → Monitor:** Convergence detected (changes decreasing iteration-over-iteration). Remaining changes trivial.
+5. **Monitor → Draft (cycle):** Gap found or new requirement identified. Revise kits and restart.
 
-The **Inspect** phase is where the human serves as **reviewer and decision-maker**, not hands-on coder. You monitor the process, request changes as needed, and make systemic improvements to kits and prompts.
+The **Inspect** phase is where the human serves as **reviewer and decision-maker**, not hands-on coder. You monitor the process, request changes, and make systemic improvements to kits and prompts.
 
 > For the full Hunt phase reference, see `references/hunt-phases.md`.
 
@@ -115,7 +115,7 @@ Use when scope is moderate — too complex for ad-hoc but not worth a full pipel
 2. Add a `context/plans/plan-task.md` sequencing the implementation
 3. Skip full Hunt — just run an iteration loop against the plan
 
-This is the "Cavekit floor" — most of the benefit without the overhead of a full multi-phase pipeline.
+The "Cavekit floor" — most of the benefit without full multi-phase pipeline overhead.
 
 ### Skip Cavekit
 
@@ -125,19 +125,19 @@ Use when the task is trivially small.
 |-----------|-----------|
 | Codebase size | Less than 5 files |
 | Task type | One-off tools, simple bug fixes, exploratory prototypes |
-| Implementation | Fits comfortably in one agent session without needing external references |
+| Implementation | Fits comfortably in one agent session without external references |
 
 **Heuristic:** If the whole task fits in one context window with room to spare, full Cavekit adds more overhead than value.
 
 ### Growth Path
 
-Start with lightweight Cavekit even if the project is small. If the scope expands, you already have the structure in place to scale up. It is much harder to retrofit kits onto a large codebase than to grow a cavekit directory from the beginning.
+Start with lightweight Cavekit even if small. If scope expands, you already have the structure to scale up. Retrofitting kits onto a large codebase is much harder than growing a cavekit directory from the start.
 
 ---
 
 ## The CI Pipeline Analogy
 
-Cavekit mirrors a **build pipeline** — each stage transforms input into validated output, with feedback loops that propagate corrections upstream:
+Cavekit mirrors a **build pipeline** — each stage transforms input into validated output, with feedback loops propagating corrections upstream:
 
 ```
 Traditional CI/CD:
@@ -154,26 +154,26 @@ Cavekit AI Pipeline:
     → Cavekit Change (cycle repeats)
 ```
 
-Every stage can run as an iteration loop — the same prompt executed repeatedly until output stabilizes. The iteration loop is what transforms nondeterministic LLM output into predictable, validated software.
+Every stage can run as an iteration loop — the same prompt executed repeatedly until output stabilizes. The iteration loop transforms nondeterministic LLM output into predictable, validated software.
 
 ### The Iteration Loop
 
-The iteration loop is the fundamental execution unit in Cavekit. Execute the same prompt against the same codebase multiple times until the delta between runs approaches zero.
+The fundamental execution unit in Cavekit. Execute the same prompt against the same codebase multiple times until the delta between runs approaches zero.
 
 **Mechanics:**
 1. Execute a prompt against the current codebase
-2. The agent inspects git history and tracking documents to understand what has already been done
-3. The agent applies changes and commits its progress
+2. Agent inspects git history and tracking documents to understand what has been done
+3. Agent applies changes and commits progress
 4. Return to step 1
 
-**Convergence signal:** A shrinking volume of modifications across successive passes — the diff gets smaller each time until only cosmetic changes remain. You are looking for diminishing returns, not absolute zero.
+**Convergence signal:** Shrinking volume of modifications across successive passes — the diff gets smaller each time until only cosmetic changes remain. Looking for diminishing returns, not absolute zero.
 
 **When the loop isn't stabilizing, the problem is upstream — fix the inputs (specs, validation, coordination), not the iteration count.**
 
 If the diff is not shrinking between runs:
 - Kits are ambiguous (agents interpret them differently each time)
-- Validation criteria are too loose (the agent has no way to confirm it got things right)
-- Multiple agents are overwriting each other's work (ownership boundaries are unclear)
+- Validation criteria are too loose (the agent has no way to confirm correctness)
+- Multiple agents are overwriting each other's work (ownership boundaries unclear)
 
 ---
 
@@ -254,11 +254,11 @@ Cavekit works **with** existing skills, not as a replacement:
 
 ## Summary
 
-Cavekit is not a tool — it is a methodology. The core loop is simple:
+Cavekit is not a tool — it is a methodology. The core loop:
 
 1. **Describe what you want** (kits with testable criteria)
 2. **Let agents build it** (plans → implementation → validation)
 3. **Fix the kits, not the code** (revision)
 4. **Repeat until converged** (iteration loops)
 
-Agents become more capable the more precisely you constrain them — clear kits, automated validation, and structured iteration loops let them operate with increasing autonomy. None of this eliminates the need for software engineers. Your judgment on architecture, your ability to write precise kits, and your instinct for what "done" looks like are the inputs that make the whole system function. Cavekit is a force multiplier: one engineer's clarity of thought, scaled across an entire implementation pipeline.
+Agents become more capable the more precisely you constrain them — clear kits, automated validation, and structured iteration loops let them operate with increasing autonomy. None of this eliminates the need for software engineers. Your judgment on architecture, your ability to write precise kits, and your instinct for what "done" looks like are the inputs that make the system function. Cavekit is a force multiplier: one engineer's clarity of thought, scaled across an entire implementation pipeline.

@@ -26,9 +26,9 @@ DESIGN.md is the visual equivalent of kits. It defines the project's visual lang
 
 Without DESIGN.md, visual decisions scatter across kits, plans, and code:
 - Colors get hardcoded differently per component
-- Typography choices vary between agents and sessions
-- Spacing becomes inconsistent across the UI
-- New components reinvent patterns that already exist
+- Typography varies between agents and sessions
+- Spacing becomes inconsistent
+- New components reinvent existing patterns
 
 DESIGN.md centralizes these decisions. Every agent reads it before writing UI code.
 
@@ -36,11 +36,11 @@ DESIGN.md centralizes these decisions. Every agent reads it before writing UI co
 
 ## The 9-Section Stitch Format
 
-DESIGN.md follows the [Google Stitch format](https://stitch.withgoogle.com/docs/design-md/overview/) — 9 sections that together define a complete visual language. Every DESIGN.md must contain all 9 sections.
+DESIGN.md follows the [Google Stitch format](https://stitch.withgoogle.com/docs/design-md/overview/) — 9 sections defining a complete visual language. Every DESIGN.md must contain all 9 sections.
 
 ### Section 1: Visual Theme & Atmosphere
 
-The design philosophy, mood, and overall aesthetic. Use evocative, specific language — not generic terms like "clean and modern."
+Design philosophy, mood, and aesthetic. Use evocative, specific language — not generic terms like "clean and modern."
 
 ```markdown
 ## 1. Visual Theme & Atmosphere
@@ -55,9 +55,9 @@ place; nothing decorative exists without functional purpose.
 **Personality:** Thoughtful librarian, not flashy storefront
 ```
 
-**What good looks like:** A new designer reading this section could sketch a rough layout without seeing any other section.
+**What good looks like:** A new designer reading this could sketch a rough layout without seeing any other section.
 
-**Anti-pattern:** "Clean, modern, and professional" — this describes nothing specific.
+**Anti-pattern:** "Clean, modern, and professional" — describes nothing specific.
 
 ### Section 2: Color Palette & Roles
 
@@ -96,7 +96,7 @@ Every color needs three things: a semantic name, a hex value, and a functional r
 ```
 
 **Rules:**
-- Every hex value must be verified against the actual design or live site
+- Every hex must be verified against the actual design or live site
 - Every color must have a clear functional role — no orphan colors
 - Name colors semantically (by role), not by hue ("Primary CTA" not "Orange")
 - If dark mode exists, map every light color to its dark equivalent
@@ -132,7 +132,7 @@ Complete type hierarchy with specific values — no "roughly 16px" or "medium we
 ```
 
 **Rules:**
-- Every level in the scale must have all 5 values (size, weight, line-height, letter-spacing, font)
+- Every level must have all 5 values (size, weight, line-height, letter-spacing, font)
 - Use rem alongside px for accessibility
 - Include font stack fallbacks
 
@@ -348,7 +348,7 @@ Place a Terracotta Brand (#c96442) primary button with Ivory text, radius-md (8p
 
 ## Design Token Conventions
 
-Tokens are the bridge between DESIGN.md and code. Consistent naming ensures agents can translate design specs into CSS/Tailwind variables.
+Tokens are the bridge between DESIGN.md and code. Consistent naming lets agents translate specs into CSS/Tailwind variables.
 
 ### Naming Pattern
 
@@ -379,13 +379,13 @@ DESIGN.md tokens map directly to CSS custom properties:
 
 ### Mapping to Tailwind
 
-When using Tailwind, DESIGN.md tokens map to `tailwind.config.js` extensions. The builder agent should configure this once and reference throughout.
+With Tailwind, DESIGN.md tokens map to `tailwind.config.js` extensions. Configure once; reference throughout.
 
 ---
 
 ## Integration with Kits
 
-When DESIGN.md exists and kits contain UI requirements, acceptance criteria should reference design tokens by section and name. This creates a traceable chain:
+When DESIGN.md exists and kits contain UI requirements, acceptance criteria reference design tokens by section and name, creating a traceable chain:
 
 ```
 DESIGN.md → Cavekit acceptance criterion → Plan task → Implementation
@@ -405,12 +405,12 @@ DESIGN.md → Cavekit acceptance criterion → Plan task → Implementation
 
 ### When No Design Reference Exists
 
-If a cavekit needs a visual pattern not in DESIGN.md, the acceptance criterion should note this:
+If a cavekit needs a visual pattern not in DESIGN.md, note this in the acceptance criterion:
 ```markdown
 - [ ] Component uses a card-like container [DESIGN.md: pattern not yet defined — flag for design update]
 ```
 
-This tells the inspect phase to check whether DESIGN.md needs a new pattern.
+The inspect phase then checks whether DESIGN.md needs a new pattern.
 
 ---
 
@@ -422,7 +422,7 @@ When the architect generates task descriptions for UI work, each task should inc
 **Design Reference:** DESIGN.md Section {N} — {section name}
 ```
 
-This tells the task-builder which DESIGN.md sections to read before implementing.
+This tells the task-builder which sections to read before implementing.
 
 ---
 
@@ -430,10 +430,10 @@ This tells the task-builder which DESIGN.md sections to read before implementing
 
 Task-builder agents follow this protocol for UI work:
 
-1. **Before implementing:** Read DESIGN.md (or the specific sections referenced in the task)
+1. **Before implementing:** Read DESIGN.md (or specific sections referenced in the task)
 2. **During implementation:** Use design tokens, not hardcoded values
 3. **In commit messages:** Note which DESIGN.md sections were followed
-4. **If a new pattern is needed:** Implement it following existing DESIGN.md conventions and flag for design update
+4. **If a new pattern is needed:** Implement following existing conventions and flag for design update
 
 ---
 
@@ -455,7 +455,7 @@ When visual fixes are made manually (outside the Hunt loop), `/ck:revise` traces
 
 1. Identify the visual change in the diff
 2. Check if DESIGN.md covers this pattern
-3. If not covered: add the pattern to the appropriate section
+3. If not covered: add to the appropriate section
 4. If covered but wrong: update the token/value
 5. Log the change to `context/designs/design-changelog.md`
 
@@ -487,14 +487,14 @@ The imported DESIGN.md becomes the project's own. Future updates are made direct
 - [ ] Every color has: semantic name + hex value + functional role
 - [ ] Complete typography table (all 5 values per level)
 - [ ] Component stylings include hover, focus, active, disabled states
-- [ ] Spacing scale is defined with consistent base unit
-- [ ] Shadow/elevation scale is defined
+- [ ] Spacing scale defined with consistent base unit
+- [ ] Shadow/elevation scale defined
 - [ ] Breakpoints have specific pixel values
 - [ ] Agent Prompt Guide has quick reference and example prompts
 
 ### Specificity Requirements
 
-Every value in DESIGN.md must be concrete and unambiguous:
+Every value must be concrete and unambiguous:
 
 | Too Vague | Specific Enough |
 |-----------|----------------|
@@ -517,9 +517,9 @@ Every value in DESIGN.md must be concrete and unambiguous:
 
 1. **Generic atmosphere** — "Clean, modern, professional" describes every SaaS app and none
 2. **Missing interaction states** — A button without hover/focus is incomplete
-3. **Orphan colors** — Colors defined in the palette but never used in components
-4. **Arbitrary spacing** — Values that don't follow the spacing scale
-5. **Missing dark mode** — If the app supports dark mode, every light color needs a mapping
+3. **Orphan colors** — Defined in the palette but never used in components
+4. **Arbitrary spacing** — Values off the spacing scale
+5. **Missing dark mode** — If supported, every light color needs a mapping
 6. **Hex-only references in components** — Use semantic names, not raw values
 7. **No Agent Prompt Guide** — Section 9 is what makes DESIGN.md actionable for AI agents
 8. **Duplicating DESIGN.md into kits** — Reference by section/token name only

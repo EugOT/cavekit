@@ -13,23 +13,23 @@ description: |
 
 # UI Craft: Implementation Guide for Exceptional Interfaces
 
-> If a DESIGN.md exists at the project root, its tokens and specifications override all defaults in this skill. This skill provides sensible defaults for when no design system exists, and implementation guidance that applies regardless.
+> If a DESIGN.md exists at the project root, its tokens and specifications override all defaults in this skill. This skill provides sensible defaults when no design system exists, and implementation guidance that applies regardless.
 
-> For deep dives on any section, see the reference files in this skill's `references/` directory.
+> For deep dives on any section, see reference files in this skill's `references/` directory.
 
 ---
 
 ## 1. Core Philosophy
 
-Taste is trained, not innate. Study why great interfaces feel right. Deconstruct apps you admire — the spacing, the timing, the weight of a shadow. The gap between "fine" and "exceptional" is built from hundreds of micro-decisions that users feel but never consciously notice.
+Taste is trained, not innate. Study why great interfaces feel right. Deconstruct apps you admire — spacing, timing, weight of a shadow. The gap between "fine" and "exceptional" is built from hundreds of micro-decisions users feel but never consciously notice.
 
-**Unseen details compound.** A single rounded corner, a single eased transition, a single well-chosen shadow — none of these matter alone. Together they become "a thousand barely audible voices singing in tune." The cumulative effect is what separates craft from output.
+**Unseen details compound.** A single rounded corner, a single eased transition, a single well-chosen shadow — none matter alone. Together they become "a thousand barely audible voices singing in tune." The cumulative effect separates craft from output.
 
 **Beauty is leverage.** Polish is not vanity. Good defaults, considered typography, and intentional motion are real differentiators. Users trust interfaces that feel cared for. Investors notice. Competitors can't easily replicate taste.
 
 **Intentionality over intensity.** Both bold maximalism and refined minimalism work — what fails is the absence of a clear point of view. Every visual decision should trace back to a deliberate conceptual direction. If you can't articulate WHY a choice was made, reconsider it.
 
-**Choose a direction and execute with precision.** Don't hedge between styles. A brutalist page committed fully will always outperform a page that's "a little bit of everything." Commit, then refine.
+**Choose a direction and execute with precision.** Don't hedge between styles. A brutalist page committed fully always outperforms a page that's "a little bit of everything." Commit, then refine.
 
 **NEVER produce generic "AI slop" aesthetics.** No gratuitous gradients on white backgrounds. No cookie-cutter hero sections with stock illustrations. No safe, forgettable layouts that could belong to any product. Every interface should have a point of view that makes it recognizable.
 
@@ -37,7 +37,7 @@ Taste is trained, not innate. Study why great interfaces feel right. Deconstruct
 
 ## 2. The Priority Stack
 
-When implementing UI, work through these priorities in order. Higher priorities are non-negotiable; lower priorities are polish that compounds quality.
+Work through these priorities in order. Higher priorities are non-negotiable; lower priorities are polish that compounds quality.
 
 | Priority | Level | What It Means |
 |----------|-------|---------------|
@@ -55,7 +55,7 @@ Never skip a CRITICAL/HIGH item to chase a LOW item. A beautifully animated butt
 
 ## 3. Aesthetic Direction
 
-Before writing a single line of CSS, commit to a bold aesthetic direction. The most common failure mode in AI-generated UI is convergence on the same safe, forgettable look.
+Before writing CSS, commit to a bold aesthetic direction. The most common failure mode in AI-generated UI is convergence on the same safe, forgettable look.
 
 ### Pick a Tone
 
@@ -93,7 +93,7 @@ Add depth through: gradient meshes, noise/grain overlays (`filter: url(#noise)`)
 
 ## 4. Typography Essentials
 
-Typography is the single highest-leverage design element. Get it right and mediocre layouts still feel good. Get it wrong and nothing else saves it.
+Typography is the highest-leverage design element. Get it right and mediocre layouts still feel good. Get it wrong and nothing else saves it.
 
 ### Root Setup
 
@@ -105,7 +105,7 @@ html {
 }
 ```
 
-Apply font smoothing to the root layout. On macOS, the default sub-pixel rendering makes text appear heavier than the designer intended.
+Apply font smoothing to the root layout. On macOS, default sub-pixel rendering makes text appear heavier than the designer intended.
 
 ### Text Wrapping
 
@@ -133,14 +133,14 @@ Use `tabular-nums` for any number that updates dynamically — prices, counters,
 
 ### Scale and Rhythm
 
-- **Base size**: 16px minimum for body text. Never go below 14px for any readable content.
+- **Base size**: 16px minimum for body text. Never below 14px for readable content.
 - **Line height**: 1.5-1.75 for body text, 1.1-1.3 for large headings.
 - **Max line length**: `max-width: 65ch` for body text. Long lines destroy readability.
 - **Type scale**: Pick a consistent scale and stick to it: 12 / 14 / 16 / 18 / 24 / 32 / 48 / 64.
 
 ### Font Pairing
 
-Pair a distinctive display font with a refined body font. The display font carries personality; the body font carries readability. Use `font-weight` for hierarchy within a family:
+Pair a distinctive display font with a refined body font. Display carries personality; body carries readability. Use `font-weight` for hierarchy within a family:
 
 - **Headings**: 600-700 (semibold to bold)
 - **Body**: 400 (regular)
@@ -202,7 +202,7 @@ Dark mode is not "invert colors." Use desaturated, lighter tonal variants. Backg
 
 ### Color Confidence
 
-Dominant colors with sharp accents outperform timid, evenly-distributed palettes. Pick one or two hero colors and let the rest of the palette recede. A confident palette has clear hierarchy; an uncertain palette spreads color evenly and feels flat.
+Dominant colors with sharp accents outperform timid, evenly-distributed palettes. Pick one or two hero colors and let the rest recede. Confident palettes have clear hierarchy; uncertain palettes spread color evenly and feel flat.
 
 ---
 
@@ -210,7 +210,7 @@ Dominant colors with sharp accents outperform timid, evenly-distributed palettes
 
 ### Concentric Border Radius
 
-This is the single most common thing that makes nested UI elements feel "off":
+The single most common thing that makes nested UI elements feel "off":
 
 ```
 outer_radius = inner_radius + padding
@@ -230,7 +230,7 @@ When geometric centering looks off, align optically. Play/pause icons, dropdown 
 
 ### Shadows Over Borders
 
-Layer multiple transparent `box-shadow` values for natural depth instead of using borders:
+Layer multiple transparent `box-shadow` values for natural depth instead of borders:
 
 ```css
 .elevated {
@@ -262,7 +262,7 @@ Use a 4px / 8px base incremental system. Every spacing value should be a multipl
 
 ### Hit Areas
 
-Minimum 44x44px for all interactive elements. If the visual element is smaller, extend the hit area with a pseudo-element:
+Minimum 44x44px for all interactive elements. If the visual is smaller, extend the hit area with a pseudo-element:
 
 ```css
 .small-button::before {
@@ -274,7 +274,7 @@ Minimum 44x44px for all interactive elements. If the visual element is smaller, 
 
 ### Z-Index Scale
 
-Define a layered scale and never use arbitrary values:
+Define a layered scale — never use arbitrary values:
 
 ```css
 --z-base: 0;
@@ -291,7 +291,7 @@ Define a layered scale and never use arbitrary values:
 
 ### The Frequency-Based Decision Framework
 
-This is the most important mental model for animation decisions:
+The most important mental model for animation decisions:
 
 | Frequency | Examples | Animation |
 |-----------|----------|-----------|
@@ -329,11 +329,11 @@ UI animations should stay under 300ms. Never use `ease-in` for UI animations —
 
 ### Enter/Exit Asymmetry
 
-Exits should be softer and faster than enters. An enter animation at 250ms should have its exit at 150-200ms.
+Exits should be softer and faster than enters. An enter at 250ms should have its exit at 150-200ms.
 
 ### Split and Stagger Enter Animations
 
-When multiple elements enter the viewport, stagger them by semantic chunks with ~50-100ms delay:
+When multiple elements enter the viewport, stagger by semantic chunks with ~50-100ms delay:
 
 ```css
 .stagger-item {
@@ -367,7 +367,7 @@ button:active {
 
 ### Interruptibility
 
-Use CSS transitions (not keyframe animations) for interactive state changes. Transitions can be interrupted mid-way; keyframes cannot. This matters for hover states, toggles, and any element the user might interact with rapidly.
+Use CSS transitions (not keyframe animations) for interactive state changes. Transitions can be interrupted mid-way; keyframes cannot. Matters for hover states, toggles, and any element the user might interact with rapidly.
 
 ### Popover Origin
 
@@ -375,7 +375,7 @@ Make popovers transform-origin aware — they should grow from their trigger ele
 
 ### Tooltip Hover Delay
 
-Skip the tooltip delay on subsequent hovers. If the user has already waited for one tooltip, show the next one immediately.
+Skip the tooltip delay on subsequent hovers. If the user already waited for one tooltip, show the next one immediately.
 
 ### Reduced Motion
 

@@ -13,21 +13,14 @@ description: >
 
 # Speculative-pipeline Strategy
 
-Run pipeline stages with staggered timing instead of sequentially. The leader starts first;
-followers start after a configurable delay and build from whatever upstream output exists at
-that point. Combined with convergence loops, followers self-correct as upstream artifacts
-arrive and stabilize.
+Run pipeline stages with staggered timing instead of sequentially. The leader starts first; followers start after a configurable delay and build from whatever upstream output exists at that point. Combined with convergence loops, followers self-correct as upstream artifacts arrive and stabilize.
 
 ## Core Principle
 
 > **Start downstream work early with partial upstream output. Convergence loops correct the
 > errors introduced by working from incomplete input.**
 
-The insight is that waiting for perfect upstream output is wasteful. A follower working from
-80% of the upstream artifacts will produce output that is ~60-70% correct on the first pass.
-But with convergence loops running, the follower re-reads the upstream artifacts on each
-iteration and corrects course. By the time the leader finishes, the follower is already
-most of the way done.
+Waiting for perfect upstream output is wasteful. A follower working from 80% of the upstream artifacts produces ~60-70% correct output on the first pass. With convergence loops running, the follower re-reads upstream artifacts each iteration and corrects course. By the time the leader finishes, the follower is already most of the way done.
 
 ---
 
@@ -55,17 +48,13 @@ Stage 3: Implement              ████████████            
 
 ### Why It Works
 
-1. **Stage 2 starts after a 1.5-hour offset.** By then, Stage 1 has produced a meaningful set of partial specs.
-2. **Stage 2 generates plans from whatever specs are available.** Some plans will be built on incomplete information.
-3. **Stage 1 keeps refining specs.** When Stage 2 loops back for its next pass, it picks up
-   the newly completed specs and adjusts its plans accordingly.
+1. **Stage 2 starts after a 1.5-hour offset.** By then, Stage 1 has produced meaningful partial specs.
+2. **Stage 2 generates plans from available specs.** Some plans will be built on incomplete information.
+3. **Stage 1 keeps refining specs.** When Stage 2 loops back, it picks up newly completed specs and adjusts.
 4. **Stage 3 starts after a 3-hour offset.** By then, both specs and plans exist in draft form.
-5. **All stages self-correct through iteration.** Each pass re-reads the latest upstream artifacts. Mistakes caused
-   by working from partial input are washed out on subsequent passes.
+5. **All stages self-correct through iteration.** Each pass re-reads the latest upstream artifacts. Mistakes from partial input wash out.
 
-The key mechanism is **convergence** -- the iterative loop that re-reads inputs each pass. Without
-convergence loops, speculative-pipeline would produce garbage. With them, early errors wash out over
-iterations.
+The key mechanism is **convergence** -- the iterative loop that re-reads inputs each pass. Without convergence loops, speculative-pipeline produces garbage. With them, early errors wash out over iterations.
 
 ---
 
@@ -86,7 +75,7 @@ context/
 
 ### Terminal Commands
 
-Open three terminal windows (or use tmux panes):
+Open three terminal windows (or tmux panes):
 
 ```bash
 # Terminal 1: Specs from reference materials (leader -- starts immediately)
@@ -104,8 +93,7 @@ Open three terminal windows (or use tmux panes):
 - `-t 2h` -- Time budget per iteration (max total time = iterations x budget)
 - `-d 1h` -- Delay before starting (speculative-pipeline offset)
 
-Replace `{LOOP_TOOL}` with your convergence loop runner (any script or tool that repeatedly
-executes a prompt against the codebase, committing between iterations).
+Replace `{LOOP_TOOL}` with your convergence loop runner (any script or tool that repeatedly executes a prompt against the codebase, committing between iterations).
 
 ### What Happens Chronologically
 
@@ -125,25 +113,21 @@ executes a prompt against the codebase, committing between iterations).
 
 ## Choosing Delay Values
 
-The delay determines how much upstream work exists when the follower starts. Too short and the
-follower wastes iterations on garbage input. Too long and you lose the time savings.
+Delay determines how much upstream work exists when the follower starts. Too short and the follower wastes iterations on garbage input. Too long and you lose the time savings.
 
 ### Guidelines
 
 | Upstream Stage Duration | Recommended Delay | Rationale |
 |------------------------|-------------------|-----------|
 | 1-2 hours | 15-30 minutes | Short stages produce useful partial output quickly |
-| 2-4 hours | 1 hour | Enough time for the first iteration to complete and commit |
+| 2-4 hours | 1 hour | Enough for the first iteration to complete and commit |
 | 4+ hours | 1-2 hours | First iteration should have substantial output |
 
 ### Rules of Thumb
 
-1. **Delay >= 1 upstream iteration.** The follower should not start until the leader has completed
-   at least one full iteration and committed results.
-2. **Delay < 50% of upstream duration.** If the delay is longer than half the upstream time, the
-   time savings are marginal.
-3. **More follower iterations compensate for shorter delays.** If you start the follower early
-   (aggressive delay), give it more iterations to converge.
+1. **Delay >= 1 upstream iteration.** The follower should not start until the leader has completed at least one iteration and committed.
+2. **Delay < 50% of upstream duration.** Longer than half the upstream time makes savings marginal.
+3. **More follower iterations compensate for shorter delays.** Aggressive delay → give more iterations to converge.
 
 ---
 
@@ -160,10 +144,10 @@ For pipelines with more than 3 stages, stagger each stage relative to Stage 1:
 {LOOP_TOOL} {PROMPT_005} -n 10 -t 45m -d 4h   # Stage 5: 4h delay
 ```
 
-**Notice the pattern:**
-- Later stages get **more iterations** (they need more correction cycles)
+**Pattern:**
+- Later stages get **more iterations** (more correction cycles)
 - Later stages get **shorter time budgets per iteration** (less work per stage)
-- Delays increase linearly (each stage offset by roughly 1 hour)
+- Delays increase linearly (each stage offset ~1 hour)
 
 ---
 
@@ -171,19 +155,18 @@ For pipelines with more than 3 stages, stagger each stage relative to Stage 1:
 
 ### Good Fit
 
-- **Long pipelines (3+ stages):** The time savings scale with pipeline depth
+- **Long pipelines (3+ stages):** Time savings scale with pipeline depth
 - **Stages that share a git repo:** Followers read upstream commits automatically
-- **Stages with convergence loops:** The self-correction mechanism is essential
-- **Specs that are mostly stable after 1-2 iterations:** Partial specs are useful early
+- **Stages with convergence loops:** Self-correction is essential
+- **Specs mostly stable after 1-2 iterations:** Partial specs are useful early
 
 ### Poor Fit
 
 - **Stages with hard dependencies:** If Stage 2 literally cannot start without Stage 1's
-  complete output (e.g., code generation that requires a fully resolved type system), the
-  follower will produce only errors
-- **Single-iteration stages:** Without convergence loops, there is no self-correction
-- **Very short pipelines (2 stages, <1 hour each):** The overhead of staggering is not
-  worth the small time savings
+  complete output (e.g., code generation requiring a fully resolved type system), the
+  follower only produces errors
+- **Single-iteration stages:** Without convergence loops, no self-correction
+- **Very short pipelines (2 stages, <1 hour each):** Staggering overhead exceeds savings
 
 ---
 
@@ -191,13 +174,9 @@ For pipelines with more than 3 stages, stagger each stage relative to Stage 1:
 
 ### What to Watch
 
-1. **Follower diff sizes per iteration.** If the follower's diffs are large on every iteration
-   (not decreasing), it is thrashing -- the delay was too short or the upstream output is
-   too unstable.
-2. **Follower convergence rate.** The follower should converge within 1-2 iterations of the
-   leader finishing. If it takes many more, the stages may have a hard dependency.
-3. **Git commit frequency.** Both leader and follower should be committing regularly. If commits
-   stall, the agent may be stuck.
+1. **Follower diff sizes per iteration.** Large diffs on every iteration (not decreasing) = thrashing — delay too short or upstream output too unstable.
+2. **Follower convergence rate.** Should converge within 1-2 iterations of the leader finishing. If much longer, stages may have a hard dependency.
+3. **Git commit frequency.** Both leader and follower should commit regularly. If commits stall, the agent may be stuck.
 
 ### Convergence Signals
 
@@ -208,11 +187,11 @@ A speculative-pipeline pipeline has converged when:
 
 ### Thrashing Detection
 
-**Thrashing** = the follower keeps making large changes because upstream output keeps changing.
+**Thrashing** = follower keeps making large changes because upstream output keeps changing.
 
-Signs of thrashing:
+Signs:
 - Follower diff sizes do not decrease across iterations
-- Follower reverts changes it made in previous iterations
+- Follower reverts changes from previous iterations
 - Build failures increase instead of decreasing
 
 **Fix thrashing by:**
@@ -233,8 +212,7 @@ Pipeline Level (speculative-pipeline timing):
   Stage 3 (Implement) → Agent team dispatched via Agent tool (starts after delay)
 ```
 
-Each stage can internally use agent teams (multiple teammates working in parallel on different
-domains), but the *stages themselves* are staggered using speculative-pipeline timing.
+Each stage can internally use agent teams (multiple teammates working in parallel on different domains), but the *stages themselves* are staggered using speculative-pipeline timing.
 
 **Do not confuse:**
 - **Leader-follower:** Pipeline stages overlapping in time
@@ -250,7 +228,7 @@ When setting up a speculative-pipeline pipeline:
 
 - [ ] Define the pipeline stages (typically: specs, plans, implement)
 - [ ] Create a prompt file for each stage with explicit input/output directories
-- [ ] Ensure each stage reads from upstream directories and writes to its own directory
+- [ ] Ensure each stage reads from upstream directories and writes to its own
 - [ ] Configure convergence loop for each stage with appropriate iteration counts
 - [ ] Choose delays: first follower at ~1 upstream iteration, subsequent at ~1h increments
 - [ ] Set up terminal sessions (one per stage) or use tmux

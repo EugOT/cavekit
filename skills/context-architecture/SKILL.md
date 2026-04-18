@@ -13,7 +13,7 @@ description: |
 
 ## Core Principle
 
-**Agents should only read what they need.** Documents are organized as a directed acyclic graph (DAG) where index files act as hub nodes. An agent reads the index, identifies relevant edges, and follows only those to leaf documents. No agent ever loads the full tree.
+**Agents should only read what they need.** Documents form a DAG where index files are hub nodes. An agent reads the index, identifies relevant edges, and follows only those to leaf documents. No agent ever loads the full tree.
 
 ---
 
@@ -24,7 +24,7 @@ refs/ (what IS)  -->  kits/ (what MUST BE)  -->  plans/ (HOW)  -->  impl/ (what 
      Tier 1                  Tier 2                     Tier 3              Tier 4
 ```
 
-Each tier consumes the previous tier's output. Cross-references between tiers create the DAG edges that agents traverse.
+Each tier consumes the previous tier's output. Cross-references between tiers create the DAG edges agents traverse.
 
 ---
 
@@ -63,11 +63,11 @@ context/
 │   └── archive/                           # Compacted/archived tracking
 ```
 
-> **Note:** `designs/` is a **cross-cutting constraint layer**, not a fifth tier. DESIGN.md (at project root) is read by agents at every Hunt phase — Draft reads it to constrain visual decisions, Architect references tokens in task descriptions, Build uses it for implementation, Inspect validates against it. It parallels how CLAUDE.md files provide conventions, but for visual design.
+> **Note:** `designs/` is a **cross-cutting constraint layer**, not a fifth tier. DESIGN.md (at project root) is read at every Hunt phase — Draft reads it to constrain visual decisions, Architect references tokens in task descriptions, Build uses it for implementation, Inspect validates against it. It parallels how CLAUDE.md files provide conventions, but for visual design.
 
 ### Backward Compatibility: sites/ → plans/
 
-Build sites previously lived in `context/sites/`. All Cavekit commands check both locations:
+Build sites previously lived in `context/sites/`. All Cavekit commands check both:
 
 1. Look in `context/plans/`
 2. If not found, fall back to `context/sites/`
@@ -81,7 +81,7 @@ Build sites previously lived in `context/sites/`. All Cavekit commands check bot
 
 ### Scope: Full Repository
 
-`CLAUDE.md` files extend beyond `context/` into the source code tree. They form the connective tissue between code and the context DAG.
+`CLAUDE.md` files extend beyond `context/` into the source code tree — connective tissue between code and the context DAG.
 
 ```
 project/
@@ -124,7 +124,7 @@ The third file bridges to the context DAG. The agent knows which cavekit to load
 ### CLAUDE.md Design Principles
 
 - **Minimal** — 3-10 lines for source-tree files. Never duplicate cavekit content.
-- **Connective** — each one names the cavekit requirements and plan tasks it relates to.
+- **Connective** — each names the cavekit requirements and plan tasks it relates to.
 - **Contextual** — includes module-specific conventions (error handling patterns, test fixture locations).
 - **Honest** — `/ck:make` only writes mappings it is certain about (tasks it completed, files it created).
 
@@ -135,7 +135,7 @@ The third file bridges to the context DAG. The agent knows which cavekit to load
 ### How Agents Navigate
 
 1. **Enter at root** — read `context/CLAUDE.md` to understand the 4 tiers
-2. **Select tier** — based on current task, navigate to the relevant tier's `CLAUDE.md`
+2. **Select tier** — navigate to the relevant tier's `CLAUDE.md`
 3. **Read index** — the tier's overview file is the DAG hub, listing all domains with one-line summaries
 4. **Follow edges** — read only the domain files relevant to the current task
 5. **Cross-reference** — if a domain references another, follow that edge only if needed
@@ -237,7 +237,7 @@ Properties: idempotent, non-destructive, no questions asked.
 After `/ck:make` completes, source-tree CLAUDE.md files are generated/updated:
 - New source directories get a CLAUDE.md with cavekit/plan references
 - Existing CLAUDE.md files get new references appended (never removed)
-- `impl-overview.md` and `plan-overview.md` are updated with current status
+- `impl-overview.md` and `plan-overview.md` updated with current status
 
 ---
 

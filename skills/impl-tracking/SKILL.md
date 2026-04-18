@@ -12,9 +12,9 @@ description: |
 
 ## Core Principle: Track Everything, Especially Failures
 
-Implementation tracking documents are **living records** that agents read and update every session. They serve as persistent memory across iterations, preventing duplicate work and preserving hard-won knowledge about what works and what does not.
+Implementation tracking documents are **living records** that agents read and update every session. They serve as persistent memory across iterations, preventing duplicate work and preserving hard-won knowledge.
 
-The most valuable information in an implementation tracking document is not what succeeded — it is **what failed and why**. Dead ends documented today prevent agents from wasting hours retrying the same failed approaches tomorrow.
+The most valuable information is not what succeeded — it is **what failed and why**. Dead ends documented today prevent agents from wasting hours retrying failed approaches tomorrow.
 
 ---
 
@@ -29,13 +29,13 @@ The most valuable information in an implementation tracking document is not what
 | **Issue tracking** | Known issues being forgotten between sessions |
 | **File change tracking** | Uncertainty about what files were created or modified |
 
-Without implementation tracking, every agent session begins with expensive rediscovery. With it, agents resume exactly where the last session left off.
+Without tracking, every agent session begins with expensive rediscovery. With it, agents resume where the last session left off.
 
 ---
 
 ## Full Implementation Tracking Document Template
 
-Use this template for every implementation tracking document:
+Use this template for every tracking document:
 
 ```markdown
 # Implementation Tracking: {Domain or Scope}
@@ -162,7 +162,7 @@ Without dead end documentation:
 4. In session 6, a new agent encounters the same problem
 5. Agent has no memory of session 5's failure
 6. Agent tries approach X again — wastes another 30 minutes
-7. This repeats indefinitely
+7. Repeats indefinitely
 
 With dead end documentation:
 1. Agent encounters a problem in session 5
@@ -194,7 +194,7 @@ Every dead end entry must include:
 
 ## Cross-Iteration Continuity
 
-Implementation tracking documents are the primary mechanism for continuity between iteration loop passes and between human-initiated sessions.
+Tracking documents are the primary mechanism for continuity between iteration loop passes and human-initiated sessions.
 
 ### How Agents Use Tracking Documents
 
@@ -203,7 +203,7 @@ At the start of every iteration or session, the agent:
 1. **Reads the tracking document** to understand current state
 2. **Checks task status** to identify the highest-priority unblocked work
 3. **Reviews dead ends** to avoid retrying failed approaches
-4. **Checks test health** to understand what is passing and failing
+4. **Checks test health** for what is passing and failing
 5. **Reviews open issues** for context on known problems
 
 At the end of every iteration or session, the agent:
@@ -238,14 +238,14 @@ At the end of every iteration or session, the agent:
 
 ## Spec Compaction
 
-When implementation tracking files exceed approximately 500 lines, they become unwieldy for agents to process. Compaction compresses the file while preserving active context.
+When tracking files exceed ~500 lines, they become unwieldy. Compaction compresses the file while preserving active context.
 
 ### When to Compact
 
 - File exceeds 500 lines
 - More than half the tasks are DONE
 - Session log has more than 5 entries
-- Dead ends section has entries older than 5 sessions that are no longer relevant
+- Dead ends section has entries older than 5 sessions no longer relevant
 
 ### Compaction Process
 
@@ -361,7 +361,7 @@ For structured handoffs between sessions (especially when different humans or au
 
 ## Work Queue Handoff
 
-At the end of a session, generate a `plan-next-session.md` that prioritizes work for the next session:
+At the end of a session, generate a `plan-next-session.md` prioritizing work for the next session:
 
 ```markdown
 # Next Session Work Queue
@@ -401,7 +401,7 @@ At the end of a session, generate a `plan-next-session.md` that prioritizes work
   - [ ] Smoke test verifies application starts and login works
 ```
 
-This removes the orientation cost at the start of each session — agents begin productive work immediately. The next agent reads this file and begins working immediately on the highest-priority item.
+This removes orientation cost at the start of each session — agents begin productive work immediately.
 
 ---
 
@@ -409,26 +409,26 @@ This removes the orientation cost at the start of each session — agents begin 
 
 ### With `ck:cavekit-writing`
 
-Implementation tracking references specs by requirement ID. When a task is completed, its acceptance criteria map back to spec requirements. When dead ends are found, they may reveal spec gaps that need revision.
+Tracking references specs by requirement ID. Completed task acceptance criteria map back to spec requirements. Dead ends may reveal spec gaps needing revision.
 
 ### With `ck:validation-first`
 
-Test health in the tracking document reflects validation gate results. Failing tests indicate which gates are not passing. The tracking document records which gates each task must clear.
+Test health reflects validation gate results. Failing tests indicate which gates are not passing. The tracking document records which gates each task must clear.
 
 ### With `ck:context-architecture`
 
-Implementation tracking documents live in `context/impl/`. When files grow too large, archive to `context/impl/archive/`. The CLAUDE.md in `context/impl/` instructs agents on tracking conventions.
+Tracking documents live in `context/impl/`. When files grow too large, archive to `context/impl/archive/`. The CLAUDE.md in `context/impl/` instructs agents on tracking conventions.
 
 ### With `ck:methodology`
 
-Implementation tracking is used primarily during the Implement and Iterate phases of the Hunt. The iteration loop reads and updates tracking documents every pass. The Monitor phase reviews tracking documents for progress signals.
+Tracking is used primarily during the Implement and Iterate phases of the Hunt. The iteration loop reads and updates tracking every pass. The Monitor phase reviews tracking for progress signals.
 
 ---
 
 ## Summary
 
 1. **Track everything, especially failures** — dead ends are the most valuable information
-2. **Use the template** — consistent format lets agents parse tracking documents reliably
+2. **Use the template** — consistent format lets agents parse tracking reliably
 3. **Update every session** — stale tracking is worse than no tracking
 4. **Document dead ends with root causes** — "it didn't work" is not useful; "failed because X, do Y instead" is
 5. **Compact when large** — archive resolved content, keep active files under 500 lines

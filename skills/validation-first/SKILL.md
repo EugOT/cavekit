@@ -12,9 +12,9 @@ description: |
 
 ## Core Principle: If an Agent Cannot Validate It, It Will Not Be Met
 
-Every spec requirement must include testable acceptance criteria that an agent can automatically verify. This is not optional — it is the foundation that makes SDD work.
+Every spec requirement must include testable acceptance criteria that an agent can automatically verify. This is not optional — it is the foundation of SDD.
 
-**Why?** AI agents are non-deterministic. Without automated validation, there is no way to know whether an agent's output is correct. Validation gates turn "the agent generated some code" into "the agent generated code that provably meets the specification."
+**Why?** AI agents are non-deterministic. Without automated validation, there is no way to know whether output is correct. Validation gates turn "the agent generated some code" into "the agent generated code that provably meets the specification."
 
 The validation-first rule applies at every level:
 - **Spec requirements** must have testable acceptance criteria
@@ -26,7 +26,7 @@ The validation-first rule applies at every level:
 
 ## The Validation Gate Sequence
 
-Every implementation must pass through six ordered checkpoints. Each successive gate is more expensive to run, so catching failures early saves significant time.
+Every implementation passes through six ordered checkpoints. Each successive gate is more expensive, so catching failures early saves time.
 
 ### Gate 1: Compilation Check
 
@@ -37,7 +37,7 @@ Every implementation must pass through six ordered checkpoints. Each successive 
 {BUILD_COMMAND}
 ```
 
-**Why it matters:** If the code does not build, nothing else can be validated. This is the cheapest possible check.
+**Why it matters:** If the code does not build, nothing else can be validated. Cheapest possible check.
 
 **What it catches:**
 - Syntax errors
@@ -63,7 +63,7 @@ Every implementation must pass through six ordered checkpoints. Each successive 
 {TEST_COMMAND} --filter {changed-files}
 ```
 
-**Why it matters:** Unit tests verify individual functions and modules in isolation. They are fast, deterministic, and catch logic errors.
+**Why it matters:** Unit tests verify individual functions and modules in isolation — fast, deterministic, catch logic errors.
 
 **What it catches:**
 - Incorrect function behavior
@@ -80,7 +80,7 @@ Every implementation must pass through six ordered checkpoints. Each successive 
 
 ### Gate 3: Cross-Component Integration
 
-**What:** End-to-end and integration tests verify that components work together.
+**What:** End-to-end and integration tests verify components work together.
 
 ```bash
 # Generic pattern
@@ -117,7 +117,7 @@ Every implementation must pass through six ordered checkpoints. Each successive 
 {TEST_COMMAND} --performance
 ```
 
-**Why it matters:** Functional correctness is necessary but not sufficient. Performance regression can make a feature unusable even if it produces correct output.
+**Why it matters:** Functional correctness is necessary but not sufficient. Performance regression can make a feature unusable even if output is correct.
 
 **What it catches:**
 - Response time regression
@@ -153,7 +153,7 @@ curl -f http://localhost:{PORT}/health
 {SMOKE_TEST_COMMAND}
 ```
 
-**Why it matters:** Code can build and pass all tests but fail to start. Launch verification catches configuration issues, missing environment variables, port conflicts, and startup race conditions.
+**Why it matters:** Code can build and pass all tests but fail to start. Launch verification catches configuration issues, missing env vars, port conflicts, and startup race conditions.
 
 **What it catches:**
 - Missing environment variables or configuration
@@ -174,7 +174,7 @@ curl -f http://localhost:{PORT}/health
 
 **What:** A human reviews the output for quality, design intent, and requirements that are difficult to automate.
 
-**Why it matters:** Some things cannot be automated — UX quality, architectural elegance, naming consistency, documentation clarity. Gate 6 is where the human acts as the final quality filter.
+**Why it matters:** Some things cannot be automated — UX quality, architectural elegance, naming consistency, documentation clarity. Gate 6 is the final human quality filter.
 
 **What it catches:**
 - Subjective quality issues
@@ -244,7 +244,7 @@ Either way, an unmapped requirement will not be reliably met by an agent.
 
 ## Phase Gates Between Hunt Phases
 
-Phase gates are mandatory verification checkpoints between Hunt phases. They ensure that the output of one phase is solid before the next phase builds on it.
+Phase gates are mandatory verification checkpoints between Hunt phases. They ensure the output of one phase is solid before the next phase builds on it.
 
 ### Phase Gate Definitions
 
@@ -262,8 +262,8 @@ Phase gates are enforced by the iteration loop. When a prompt includes phase gat
 
 1. Runs the gate check at the end of the phase
 2. Reports pass/fail status
-3. If the gate fails, the agent does not proceed to the next phase
-4. Instead, the agent iterates on the current phase until the gate passes
+3. If the gate fails, does not proceed to the next phase
+4. Instead, iterates on the current phase until the gate passes
 
 ### Example: Implement → Iterate Gate
 
@@ -320,7 +320,7 @@ Merging all agent branches simultaneously and then running tests makes it imposs
 
 ## Completion Signals
 
-Completion signals are specific strings that agents emit when all exit criteria for a task or phase are met. They enable automation to detect when an agent is done.
+Completion signals are specific strings agents emit when all exit criteria are met. They enable automation to detect when an agent is done.
 
 ### How Completion Signals Work
 
@@ -394,7 +394,7 @@ Earlier gates are cheaper. Fixing a build error costs seconds. Fixing an integra
 
 ### Pattern 3: Progressive Gate Depth
 
-Not every iteration needs all gates. Use progressive depth based on the phase:
+Not every iteration needs all gates. Use progressive depth based on phase:
 
 | Phase | Required Gates | Optional Gates |
 |-------|---------------|---------------|

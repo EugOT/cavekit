@@ -9,7 +9,7 @@ argument-hint: "[REFS_PATH | --from-code] [--filter PATTERN]"
 
 # Cavekit Sketch — Write Kits
 
-This is the first phase of Cavekit. You are writing implementation-agnostic kits that define WHAT to build through collaborative design with the user.
+First phase of Cavekit. Write implementation-agnostic kits that define WHAT to build through collaborative design with the user.
 
 **HARD GATE:** Do NOT generate cavekit files until you have presented the design and the user has approved it. This applies to EVERY project regardless of perceived simplicity. A todo app, a config change, a single-domain project — all of them go through the design process. The design can be short for simple projects, but you MUST present it and get approval.
 
@@ -27,11 +27,11 @@ Before doing any substantive work:
    ```
    (If `.cavekit/` is absent, run `/ck:init` first — or skip; sketch works without it.)
 
-Keep the user Q&A in the parent thread. Use `EXPLORATION_MODEL` for helper exploration/research and `REASONING_MODEL` for cavekit generation and review.
+Keep user Q&A in the parent thread. Use `EXPLORATION_MODEL` for helper exploration/research and `REASONING_MODEL` for cavekit generation and review.
 
 ## Post-Draft: Auto-classify complexity
 
-After each approved kit is written to `context/kits/cavekit-{domain}.md`, dispatch a lightweight `ck:complexity` subagent to fill the `complexity:` frontmatter field automatically (replaces manual guessing):
+After each approved kit is written to `context/kits/cavekit-{domain}.md`, dispatch a lightweight `ck:complexity` subagent to fill the `complexity:` frontmatter field automatically:
 
 ```
 Agent(
@@ -48,7 +48,7 @@ Map the returned `depth` (`quick` / `standard` / `thorough`) into the kit's `com
 <!-- cavekit: needs_research — /ck:map will insert a ck:researcher dependency -->
 ```
 
-so `/ck:map` knows to schedule an upstream research task before the main work. Do not run research here — that is `/ck:research`'s or `/ck:map`'s job.
+so `/ck:map` knows to schedule an upstream research task. Do not run research here — that is `/ck:research`'s or `/ck:map`'s job.
 
 ## Determine Mode
 
@@ -59,7 +59,7 @@ Parse `$ARGUMENTS`:
 
 ## Step 1: Ensure Directories Exist
 
-Create these if missing (no separate init needed):
+Create if missing (no separate init needed):
 - `context/kits/`
 - `context/plans/`
 - `context/impl/`
@@ -68,16 +68,16 @@ Create these if missing (no separate init needed):
 
 ## Step 2: Explore Project Context
 
-Before asking ANY questions, understand what already exists:
+Before asking ANY questions:
 
 1. Check for existing `context/kits/` — are there prior kits?
 2. Read project docs, README, CLAUDE.md if present
-3. Check recent git commits to understand current momentum
+3. Check recent git commits for current momentum
 4. Scan the codebase structure (directory layout, key files)
 5. Check `context/refs/` for reference materials already provided
 6. Check for existing `DESIGN.md` at project root or in `context/designs/` — if present, this constrains visual design decisions for any UI-related kits
 
-This gives you grounding before engaging the user. Do NOT skip this even if the user has already described what they want.
+Do NOT skip this even if the user has already described what they want.
 
 If the repo scan is non-trivial, dispatch one helper exploration subagent with `model: "{EXPLORATION_MODEL}"` to gather the codebase/docs/git summary, then continue the design conversation in the parent thread.
 
@@ -85,38 +85,38 @@ If the repo scan is non-trivial, dispatch one helper exploration subagent with `
 
 ### Interactive mode (no arguments)
 
-This is a **collaborative design process**. Follow these steps in order:
+Collaborative design process. Follow in order:
 
 #### 3a: Offer Visual Companion (if applicable)
 
-If upcoming questions will involve visual content (UI layouts, architecture diagrams, data flow), offer the visual companion. This MUST be its own message — do not combine it with any other content:
+If upcoming questions involve visual content (UI layouts, architecture diagrams, data flow), offer the visual companion. This MUST be its own message — do not combine it with any other content:
 
 > "Some of what we're working on might be easier to explain if I can show it to you in a web browser. I can put together mockups, diagrams, comparisons, and other visuals as we go. Want to try it? (Requires opening a local URL)"
 
-Wait for the user's response. If they decline, proceed with text-only. If they accept, read `references/visual-companion.md` for the detailed guide. The server lives in `scripts/visual-companion/`.
+Wait for response. If declined, proceed text-only. If accepted, read `references/visual-companion.md` for the detailed guide. Server lives in `scripts/visual-companion/`.
 
 If the project has a `DESIGN.md` at the root, mention it: "I see an existing design system (DESIGN.md). I'll use it as a visual constraint for any UI-related kits."
 
-**Per-question decision:** Even after the user accepts, decide FOR EACH QUESTION whether to use the browser or the terminal. The test: **would the user understand this better by seeing it than reading it?**
-- **Use the browser** for: mockups, wireframes, architecture diagrams, side-by-side visual comparisons
-- **Use the terminal** for: requirements questions, conceptual choices, tradeoff lists, scope decisions
+**Per-question decision:** Even after acceptance, decide FOR EACH QUESTION whether to use browser or terminal. Test: **would the user understand this better by seeing it than reading it?**
+- **Browser** for: mockups, wireframes, architecture diagrams, side-by-side visual comparisons
+- **Terminal** for: requirements questions, conceptual choices, tradeoff lists, scope decisions
 
 #### 3b: Scoping Questions
 
-Ask **1–2 initial questions** to understand the project's purpose, scope, and technology landscape. These are high-level — enough to assess whether deep research is warranted.
+Ask **1–2 initial questions** to understand purpose, scope, and technology. High-level — enough to assess whether deep research is warranted.
 
 - Prefer **multiple choice** when possible
 - Focus on: **what** you're building, **who** it's for, **what technology** is involved
 - Open-ended is fine when the topic needs exploration
 
-**Scope check:** If the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Help the user decompose into sub-projects first. Each sub-project gets its own draft cycle.
+**Scope check:** If the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag immediately. Help the user decompose into sub-projects first. Each sub-project gets its own draft cycle.
 
 #### 3c: Check for Existing Research Brief
 
-After scoping, check for an existing research brief:
+After scoping:
 
 1. Look in `context/refs/` for `research-brief-*.md` files relevant to this project
-2. If a **fresh brief exists** (check the `Generated:` date in the brief):
+2. If a **fresh brief exists** (check `Generated:` date):
    ```
    Found research brief: research-brief-{topic}.md ({age} ago). Use it? [Y/n/rerun]
    ```
@@ -124,21 +124,21 @@ After scoping, check for an existing research brief:
    - **n**: Ignore the brief, skip to 3e
    - **rerun**: Run fresh research (3d)
 
-3. If **no brief exists**, assess whether research is warranted based on the scoping conversation:
+3. If **no brief exists**, assess whether research is warranted:
 
    **Research IS recommended when any of:**
-   - The project involves technology you have low confidence about (novel frameworks, niche domains)
-   - The project is brownfield and the codebase is medium-to-large
-   - The user's description implies architectural decisions with multiple viable approaches
-   - The domain has fast-moving best practices (security, AI/ML, web frameworks)
+   - Technology you have low confidence about (novel frameworks, niche domains)
+   - Brownfield project with medium-to-large codebase
+   - Description implies architectural decisions with multiple viable approaches
+   - Fast-moving best-practices domain (security, AI/ML, web frameworks)
 
    **Research is NOT recommended when:**
-   - The project is a small config change or bug fix
-   - The technology stack is well-understood and you have high confidence
-   - The user has already provided comprehensive reference materials in `context/refs/`
-   - The user explicitly asked for a quick draft
+   - Small config change or bug fix
+   - Well-understood stack with high confidence
+   - User has already provided comprehensive refs in `context/refs/`
+   - User explicitly asked for a quick draft
 
-4. If research is warranted, prompt:
+4. If warranted, prompt:
    ```
    This project touches {topics} which would benefit from deep research —
    current best practices, library landscape, and {codebase analysis if brownfield}.
@@ -151,7 +151,7 @@ After scoping, check for an existing research brief:
 
 #### 3d: Research Phase
 
-If research was triggered in 3c, run the deep research pipeline. Generate a topic slug from the project description (kebab-case, 2-4 words).
+If triggered, run the deep research pipeline. Generate a topic slug from the description (kebab-case, 2-4 words).
 
 **1. Assess project size** — count source files to determine codebase agent count:
 
@@ -248,13 +248,13 @@ Full brief: context/refs/research-brief-{topic}.md
 
 #### 3e: Clarifying Questions — One at a Time
 
-Continue asking questions **one at a time** to fill in the remaining design picture. Do NOT dump multiple questions in a single message.
+Continue **one at a time**. Do NOT dump multiple questions in a single message.
 
-- Prefer **multiple choice** when possible — easier to answer than open-ended
+- Prefer **multiple choice** when possible
 - Focus on: **core requirements**, **scope boundaries**, **user journeys**, **constraints**, **success criteria**
 
 **If research was done**, use findings to inform questions:
-- Open questions from the research brief become clarifying questions
+- Open questions from the brief become clarifying questions
 - Findings inform multiple-choice options (e.g., "Research shows OAuth 2.1 + PKCE is current standard, and your codebase already has passport.js — build on that or switch?")
 - Don't re-ask what research already answered
 
@@ -262,8 +262,8 @@ Continue until you have a clear picture of:
 - What the system must do (core requirements)
 - What it must NOT do (scope boundaries)
 - Who uses it and how (user journeys / entry points)
-- What constraints exist (technical, organizational, timeline)
-- What success looks like (how do we know it works?)
+- Constraints (technical, organizational, timeline)
+- Success criteria (how do we know it works?)
 
 #### 3f: Propose 2-3 Approaches
 
@@ -272,7 +272,7 @@ Before settling on a design, propose **2-3 different domain decomposition approa
 - Lead with your **recommended** approach and explain why
 - Present alternatives with honest pros/cons
 - Consider: coupling, complexity, parallelizability, testability
-- Be ready to combine elements from different approaches based on feedback
+- Be ready to combine elements based on feedback
 - **If research was done**, back approaches with evidence (e.g., "Approach A uses chevrotain — research confirms 3x faster than nearley for grammars of this size")
 
 Example:
@@ -287,7 +287,7 @@ Example:
 
 #### 3g: Present Full Design for Approval (single message)
 
-Once the user picks an approach, present the **entire domain decomposition in one message** and ask for approval once. Do NOT walk through domains one-by-one across multiple turns — the user sees the whole picture at once and can react to any part of it.
+Once the user picks an approach, present the **entire domain decomposition in one message** and ask for approval once. Do NOT walk through domains one-by-one across multiple turns.
 
 Structure the single message as:
 
@@ -308,9 +308,9 @@ Structure the single message as:
 Approve this decomposition, or tell me what to change?
 ```
 
-Scale each domain block to its complexity — a few bullets is fine for straightforward domains, more detail only if genuinely nuanced. Keep the whole message scannable.
+Scale each domain block to its complexity. Keep the whole message scannable.
 
-If the user requests changes, revise and re-present the full updated decomposition in one message. Only proceed to Step 4 once the user approves.
+If the user requests changes, revise and re-present the full updated decomposition in one message. Only proceed to Step 4 once approved.
 
 **Design for isolation:** Each domain should:
 - Have one clear purpose
@@ -318,13 +318,13 @@ If the user requests changes, revise and re-present the full updated decompositi
 - Be understandable and testable independently
 - Be small enough to reason about in a single context window
 
-**YAGNI ruthlessly:** Remove features the user didn't ask for. If you're tempted to add "nice to have" requirements, don't. Smaller kits are better kits.
+**YAGNI ruthlessly:** Remove features the user didn't ask for. If tempted to add "nice to have" requirements, don't. Smaller kits are better kits.
 
 ### Refs mode (path given)
 
-Read all files at the given path (or `context/refs/` if the path is a directory). Catalog what you find: PRDs, API docs, design kits, research, architecture docs. Use these as the source of truth for cavekit generation.
+Read all files at the given path (or `context/refs/` if a directory). Catalog what you find: PRDs, API docs, design kits, research, architecture docs. Use these as source of truth.
 
-After reading, still present a brief design summary to the user before generating files:
+After reading, still present a brief design summary before generating files:
 - "Here's what I found and how I plan to decompose it into domains: ..."
 - Get approval before proceeding to file generation.
 
@@ -334,23 +334,23 @@ Explore the existing codebase:
 1. Read directory structure to understand architecture
 2. Identify logical domains from code organization
 3. For each domain, identify: entry points, data models, external dependencies, existing tests
-4. Treat existing code as the reference material
+4. Treat existing code as reference material
 
-After exploration, present your proposed decomposition to the user before generating files.
+After exploration, present proposed decomposition before generating files.
 
 ## Step 4: Decompose into Domains
 
-Analyze the input and decompose into logical domains. Each domain should be:
+Each domain should be:
 - **Cohesive** — covers one area of functionality
 - **Loosely coupled** — minimal dependencies on other domains
-- **Independently specifiable** — can be described without implementation details of other domains
+- **Independently specifiable** — describable without implementation details of other domains
 - **Right-sized** — small enough to hold in context, large enough to be meaningful
 
 ## Step 5: Generate Kits
 
 **Only after user approves the design**, generate cavekit files.
 
-**Write kits inline in the parent thread.** Do NOT dispatch a `ck:drafter` subagent — the parent session performs the cavekit writing directly, following the structure in `agents/drafter.md` as a reference guide. This removes the subagent-dispatch failure mode (silent returns, worktree churn) and keeps the kit-writing step observable.
+**Write kits inline in the parent thread.** Do NOT dispatch a `ck:drafter` subagent — the parent session performs the cavekit writing directly, following `agents/drafter.md` as a reference guide. This removes the subagent-dispatch failure mode (silent returns, worktree churn) and keeps kit-writing observable.
 
 Follow the drafter playbook inline:
 1. Read the agreed decomposition from the approved design.
@@ -403,13 +403,13 @@ If `--filter` is set, only generate kits for domains matching the filter pattern
 - Explicitly state what is out of scope
 - Use R-numbered requirements (R1, R2, R3...)
 - **YAGNI** — do not add requirements the user did not ask for
-- If research was done, kits may reference the brief as source material: "See `context/refs/research-brief-{topic}.md` for library evaluation"
-- **Design system integration** — for kits containing UI requirements, acceptance criteria SHOULD reference DESIGN.md sections/tokens where applicable (e.g., "Button uses primary CTA styling from DESIGN.md Section 4"). This makes the visual contract explicit and inspectable. Do NOT duplicate DESIGN.md content — reference by section/token name only.
+- If research was done, kits may reference the brief: "See `context/refs/research-brief-{topic}.md` for library evaluation"
+- **Design system integration** — for kits with UI requirements, acceptance criteria SHOULD reference DESIGN.md sections/tokens where applicable (e.g., "Button uses primary CTA styling from DESIGN.md Section 4"). Do NOT duplicate DESIGN.md content — reference by section/token name only.
 
 ### Brownfield-Specific Rules
 
 - Describe what the code DOES, not how it's implemented
-- For each acceptance criterion, verify the existing code satisfies it
+- For each acceptance criterion, verify existing code satisfies it
 - If code does NOT satisfy a criterion, mark it as `[GAP]`
 - Note source files that informed each cavekit in a Source Traceability section
 
@@ -445,13 +445,13 @@ last_edited: "{CURRENT_DATE_UTC}"
 1. Verify every cross-reference points to an existing cavekit
 2. Verify no domain is referenced but missing a cavekit
 3. Verify the dependency graph has no circular dependencies
-4. Verify acceptance criteria across kits are consistent (no contradictions)
-5. Verify no implementation details leaked into kits (no framework names, file paths, API choices)
+4. Verify acceptance criteria are consistent across kits (no contradictions)
+5. Verify no implementation details leaked (no framework names, file paths, API choices)
 6. (Brownfield only) Verify acceptance criteria against existing code
 
 ## Step 8: Cavekit Review Loop
 
-After writing kits, dispatch a **cavekit-reviewer** subagent to verify quality:
+After writing kits, dispatch a **cavekit-reviewer** subagent:
 
 ```
 Agent tool (subagent_type: "ck:cavekit-reviewer", model: "{REASONING_MODEL}"):
@@ -509,7 +509,7 @@ After the review loop passes, present the Draft Report (Step 10 format) in a sin
 
 Response handling:
 - **Approve / yes / looks good / ship it / ok / `/ck:map`** → treat as full approval. Skip waiting for a second confirmation. Immediately invoke `/ck:map` in the same turn and proceed into the Architect phase.
-- **Change requests** → apply changes, re-run Step 8, then return here. Do not auto-advance until the user approves.
+- **Change requests** → apply changes, re-run Step 8, then return here. Do not auto-advance until approved.
 - **Ambiguous** → ask once for clarification; do not advance.
 
 The single approval in 3g + the single approval here are the only two user gates. Do not introduce extra per-domain or per-file checks.
@@ -540,10 +540,10 @@ This is the payload shown in Step 9 — not a separate stage.
 
 ## Key Principles
 
-- **One question at a time** — do not overwhelm with multiple questions
-- **Multiple choice preferred** — easier to answer than open-ended when possible
-- **YAGNI ruthlessly** — remove unnecessary features from all kits
+- **One question at a time** — do not overwhelm
+- **Multiple choice preferred** — easier than open-ended
+- **YAGNI ruthlessly** — remove unnecessary features
 - **Explore alternatives** — always propose 2-3 approaches before settling
-- **Single-message domain approval** — present the full decomposition in one message and approve once; don't walk domains one-by-one
+- **Single-message domain approval** — present the full decomposition in one message; don't walk domains one-by-one
 - **Design for isolation** — each domain has one purpose, clear interfaces, independently testable
 - **No cavekit generation before design approval** — the design conversation IS the value

@@ -31,31 +31,26 @@ description: |
 - Structured findings tables (P0/P1/P2/P3, coverage matrices)
 - Regression test names and assertion messages
 
-Compressing out-of-scope content is a bug. If a reader cannot act on a
-compressed artifact, regenerate it verbose and log a caveman fallback — see
-"Fallback protocol" below.
+Compressing out-of-scope content is a bug. If a reader cannot act on a compressed artifact, regenerate it verbose and log a caveman fallback — see "Fallback protocol" below.
 
 ## Intensity levels
 
 ### Lite — trim the fat (~20% savings)
 
-Professional tone. Grammar intact. Drop filler, pleasantries, hedging. Keep
-articles and full sentences.
+Professional tone. Grammar intact. Drop filler, pleasantries, hedging. Keep articles and full sentences.
 
 > Rate-limit middleware passes unit tests. Integration failed on 429 header
 > case sensitivity. Fix in progress.
 
 ### Full — default (~40% savings)
 
-Classic caveman. Drop articles, filler, pleasantries. Fragments fine.
-Technical terms stay exact. Pattern: `[thing] [action] [reason]. [next].`
+Classic caveman. Drop articles, filler, pleasantries. Fragments fine. Technical terms stay exact. Pattern: `[thing] [action] [reason]. [next].`
 
 > Rate-limit mw pass unit. Integration fail on 429 header case. Fixing.
 
 ### Ultra — maximum grunt (~65% savings)
 
-Telegraphic. Abbreviate common terms (DB, auth, config, req, res, fn, impl,
-mw, mcp). Arrow notation for causality. One-word answers when enough.
+Telegraphic. Abbreviate common terms (DB, auth, config, req, res, fn, impl, mw, mcp). Arrow notation for causality. One-word answers when enough.
 
 > mw ok, int fail header case → fix
 
@@ -71,7 +66,7 @@ Consult the session budget ledger before writing an internal artifact:
 
 Override rules:
 - `depth = thorough` tasks clamp to **lite** regardless of pressure (accuracy
-  matters more than tokens when the stakes are high).
+  matters more than tokens when stakes are high).
 - `phase = inspecting` clamps to **lite** for the gap-analysis output.
 - Security-sensitive artifacts clamp to **lite**.
 - If the caller sets `caveman_intensity` explicitly in the artifact envelope,
@@ -99,9 +94,7 @@ Every compressed artifact carries a tiny header:
 <!-- caveman: intensity=full version=1 -->
 ```
 
-Readers that see this header know the body is compressed and apply the
-reverse-expansion grammar (re-add articles, re-expand abbreviations) when
-rendering for a human.
+Readers that see this header know the body is compressed and apply the reverse-expansion grammar (re-add articles, re-expand abbreviations) when rendering for a human.
 
 ## Examples
 
@@ -113,8 +106,4 @@ rendering for a human.
 
 ## Integration with the existing `caveman` skill
 
-The user-facing `caveman` skill governs how the assistant **speaks to the user**
-during a session (answers, explanations, replies). This `caveman-internal`
-skill governs how agents **write artifacts** for each other. Both must be on
-or both off for a coherent experience, so `caveman_mode = off` in config also
-disables this skill.
+The user-facing `caveman` skill governs how the assistant **speaks to the user** during a session (answers, explanations, replies). This `caveman-internal` skill governs how agents **write artifacts** for each other. Both must be on or both off for a coherent experience, so `caveman_mode = off` in config also disables this skill.

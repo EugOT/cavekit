@@ -12,19 +12,19 @@ description: >
 
 # Revision: Tracing Bugs Back to Kits
 
-In Cavekit, revision means tracing a production defect upstream through the cavekit chain until you find the gap that allowed it. In practice, when the built software has bugs or gaps, you trace the issue back to the kits and prompts and fix at the source -- not just in code.
+In Cavekit, revision means tracing a production defect upstream through the cavekit chain until you find the gap that allowed it. When built software has bugs or gaps, trace the issue back to the kits and prompts and fix at the source -- not just in code.
 
-**Key insight:** When a fix lives only in code with no corresponding cavekit update, the next iteration loop may reintroduce the same defect. The goal is that kits plus the iteration loop can reproduce any fix autonomously.
+**Key insight:** When a fix lives only in code with no corresponding cavekit update, the next iteration loop may reintroduce the same defect. The goal: kits plus the iteration loop can reproduce any fix autonomously.
 
 ---
 
 ## 1. Why Revision Matters
 
-Without revision, every bug fix is a one-off patch. The next time the iteration loop runs, it may reintroduce the bug because nothing in the kits or plans prevents it.
+Without revision, every bug fix is a one-off patch. The next iteration loop may reintroduce the bug because nothing in the kits or plans prevents it.
 
 With revision:
-- Bug fixes become **cavekit improvements** that persist across all future iterations
-- The iteration loop becomes **self-correcting** -- it learns from every manual intervention
+- Bug fixes become **cavekit improvements** persisting across all future iterations
+- The iteration loop becomes **self-correcting** -- learning from every manual intervention
 - Kits become **progressively more complete** over time
 - The gap between "what kits describe" and "what works" **shrinks monotonically**
 
@@ -40,11 +40,11 @@ With revision:
 
 ## 2. The 6-Step Revision Process
 
-This is the complete process for tracing a bug back to its cavekit-level root cause and closing the loop.
+Complete process for tracing a bug to its cavekit-level root cause and closing the loop.
 
 ### Step 1: Identify and Fix the Defect
 
-Locate the bug -- whether through manual testing, automated failures, user reports, or monitoring alerts -- and resolve it through normal debugging. This produces a working code change, but the job is far from done: until the underlying cavekit gap is closed, this fix is fragile.
+Locate the bug (manual testing, automated failures, user reports, monitoring alerts) and resolve it through normal debugging. Until the underlying cavekit gap is closed, this fix is fragile.
 
 ```bash
 # The fix produces commits that we will analyze
@@ -55,9 +55,9 @@ git log --oneline -5
 
 ### Step 2: Analyze What the Cavekit Missed
 
-This is the pivotal step. Ask: **"Where in the cavekit chain did this requirement slip through?"**
+Pivotal step. Ask: **"Where in the cavekit chain did this requirement slip through?"**
 
-Break the analysis into five dimensions:
+Break analysis into five dimensions:
 - **WHAT** changed (files, functions, observable behavior)
 - **WHY** it was wrong (which assumption proved false)
 - **VISUAL** — does this fix change visual appearance (CSS, styling, layout)? If yes, check whether DESIGN.md covers the pattern. A missing design pattern is a design system gap that should be fixed alongside the cavekit gap.
@@ -80,7 +80,7 @@ Example analysis:
 
 ### Step 3: Update the Cavekit
 
-Add the missing requirement or constraint to the appropriate cavekit file. Focus on acceptance criteria that are concrete enough for the iteration loop to act on:
+Add the missing requirement to the appropriate cavekit file. Use acceptance criteria concrete enough for the iteration loop to act on:
 
 ```markdown
 # In context/kits/cavekit-data.md, add:
@@ -122,7 +122,7 @@ Trace the cavekit update through every downstream context file:
 
 When the defect represents a recurring class of problem rather than a one-off, elevate the fix to the prompt level so it applies across all domains:
 
-**Signs you are looking at a pattern:**
+**Signs of a pattern:**
 - The same category of bug has surfaced in more than one module
 - The gap is structural (e.g., no specs anywhere address resource limits)
 - A missing validation gate allowed the issue through
@@ -142,7 +142,7 @@ For every external resource integration, verify:
 
 ### Step 6: Verify and Lock In
 
-Run the iteration loop against the updated kits to prove the fix emerges from kits alone, then generate regression tests to prevent future recurrence:
+Run the iteration loop against updated kits to prove the fix emerges from kits alone, then generate regression tests:
 
 ```bash
 # Proof step: remove the manual fix and re-run from specs
@@ -163,7 +163,7 @@ Once verified, create regression tests:
 # tests/db/connection-pool-limits.test.ts
 ```
 
-The regression tests should:
+Regression tests should:
 - Map directly to the acceptance criteria from Step 3
 - Fail if the fix is reverted
 - Run as part of the standard test suite going forward
@@ -172,7 +172,7 @@ The regression tests should:
 
 ## 3. Revision Analysis (Automated)
 
-The revision analysis automates Steps 2-4 by examining recent git history.
+Revision analysis automates Steps 2-4 by examining recent git history.
 
 ### 3.1 Classify Commits
 
@@ -185,7 +185,7 @@ Analyze recent commits and classify each as:
 | **Infrastructure** | Build config, CI, tooling changes | No action -- not cavekit-related |
 
 **How to classify:**
-- Commits from iteration loop sessions have predictable patterns (automated commit messages, batch changes)
+- Iteration loop commits have predictable patterns (automated messages, batch changes)
 - Manual fixes are typically single-issue, focused commits with descriptive messages
 - Infrastructure changes touch config files, build scripts, CI pipelines
 
@@ -219,7 +219,7 @@ For each commit classified as a manual fix, determine:
 
 ### 3.3 Discover Affected Plan Files
 
-Dynamically discover which plan files govern the changed source paths:
+Dynamically discover which plan files govern changed source paths:
 
 ```
 Changed file: src/auth/client.ts
@@ -254,7 +254,7 @@ For each revision target, update:
 
 ### 3.5 Run Tests
 
-After updating context files, run the test suite to verify nothing broke:
+After updating context files, run the test suite:
 
 ```bash
 {BUILD_COMMAND}
@@ -297,7 +297,7 @@ For each revision target, generate a regression test that:
 
 Not every code fix needs revision:
 
-- **One-off environment issues** (wrong config, missing dependency) -- these are infrastructure, not cavekit gaps
+- **One-off environment issues** (wrong config, missing dependency) -- infrastructure, not cavekit gaps
 - **Typos and formatting** -- trivial fixes that do not reflect missing requirements
 - **Exploratory changes** during prototyping -- kits are still being formed
 - **Performance optimizations** that do not change behavior -- unless performance is a cavekit requirement
@@ -321,9 +321,9 @@ Iteration 4: 10 lines changed, 0 manual fixes needed
   -> Convergence achieved
 ```
 
-Every revision cycle tightens the kits, so the iteration loop settles into a stable solution in fewer passes. If convergence is not improving, the most likely cause is that manual fixes are being applied without tracing them back to kits.
+Every revision cycle tightens the kits, so the iteration loop settles into a stable solution in fewer passes. If convergence is not improving, the likely cause is manual fixes applied without tracing them back to kits.
 
-**Stalled convergence paired with ongoing manual fixes is a clear sign of revision debt.** The kits have not absorbed the lessons from past corrections, so the loop keeps regenerating flawed output that demands human repair.
+**Stalled convergence paired with ongoing manual fixes is a clear sign of revision debt.** Kits have not absorbed lessons from past corrections, so the loop keeps regenerating flawed output that demands human repair.
 
 ---
 
@@ -347,9 +347,9 @@ Every revision cycle tightens the kits, so the iteration loop settles into a sta
 
 ## 8. Automated Backpropagation (Single-Failure Trace)
 
-The revision skill also handles the **single-failure backpropagation protocol** — invoked automatically when a test command fails during `/ck:make`, or manually via `/ck:revise --trace`. Where Sections 1–7 describe the multi-commit revision sweep, this section describes the single-failure trace with a tighter six-step procedure and an explicit audit log.
+The revision skill also handles the **single-failure backpropagation protocol** — invoked automatically when a test command fails during `/ck:make`, or manually via `/ck:revise --trace`. Where Sections 1–7 describe the multi-commit revision sweep, this section describes the single-failure trace with a tighter six-step procedure and explicit audit log.
 
-**Principle:** Bugs are spec bugs until proven otherwise. Before patching code, verify the kit actually covered the failing behavior. If it did not, the fix is a kit amendment plus a regression test — not just a patch.
+**Principle:** Bugs are spec bugs until proven otherwise. Before patching code, verify the kit actually covered the failing behavior. If not, the fix is a kit amendment plus a regression test — not just a patch.
 
 ### Six-Step Procedure
 
@@ -436,7 +436,7 @@ When a threshold hits, propose a cross-kit amendment (e.g., a validation rule ad
 
 ### Auto-Backprop Hook Integration
 
-The `auto-backprop.js` hook writes `.cavekit/.auto-backprop-pending.json` when a test command fails during `/ck:make`. The stop hook reads this flag and prepends a trace directive to the next iteration's prompt, which tells the agent to run the six steps above before resuming normal task execution. Once the directive fires, the flag is atomically deleted.
+The `auto-backprop.js` hook writes `.cavekit/.auto-backprop-pending.json` when a test command fails during `/ck:make`. The stop hook reads this flag and prepends a trace directive to the next iteration's prompt, telling the agent to run the six steps above before resuming normal task execution. Once the directive fires, the flag is atomically deleted.
 
 Disable via `auto_backprop = false` in `.cavekit/config.json` if you need to run `/ck:make` without this safety net (e.g., during exploratory spikes).
 

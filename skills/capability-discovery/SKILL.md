@@ -11,9 +11,7 @@ description: |
 
 # Capability Discovery
 
-The pipeline should never invent tools. Before drafting a kit that references
-GitHub Actions, Supabase, Codex, or any other external dependency, check what
-actually exists.
+Never invent tools. Before drafting a kit that references GitHub Actions, Supabase, Codex, or any external dependency, check what actually exists.
 
 ## What we detect
 
@@ -23,7 +21,7 @@ actually exists.
 - **MCP servers**: parsed from `.mcp.json` in the project root and
   `~/.claude.json` (user level).
 - **Claude Code plugins**: parsed from `~/.claude/plugins/installed_plugins.json`.
-- **Codex**: presence of the `codex` CLI (enables peer-review commands).
+- **Codex**: presence of `codex` CLI (enables peer-review commands).
 - **Knowledge graph**: presence of `graphify-out/graph.json` (enables the
   `graphify-integration` skill).
 
@@ -50,14 +48,12 @@ Writes `.cavekit/capabilities.json`:
 ## How other commands use it
 
 - **`/ck:sketch`** — reads capabilities before proposing integrations. If a
-  kit would need a missing tool, it either adds a "Setup" task to the build
-  site or asks the user whether to proceed without it.
+  kit needs a missing tool, either adds a "Setup" task to the build site or
+  asks the user whether to proceed without it.
 - **`/ck:map`** — flags tasks that depend on missing capabilities as
   `blocked: setup-required`.
-- **`/ck:make`** — refuses to dispatch subagents that require a missing MCP
-  server.
-- **`/ck:check`** — includes a "Capability Coverage" section in the inspect
-  report.
+- **`/ck:make`** — refuses to dispatch subagents that require a missing MCP server.
+- **`/ck:check`** — includes a "Capability Coverage" section in the inspect report.
 
 ## When to re-run
 
@@ -71,9 +67,8 @@ The file is cheap to regenerate — always discover, never guess.
 ## What we deliberately do not detect
 
 - Network-accessible APIs behind credentials. Availability is not reachability;
-  kits should record credentials as a separate concern (never committed).
-- IDE extensions. They are not scriptable from the loop and would create false
-  assurances.
+  kits record credentials as a separate concern (never committed).
+- IDE extensions. Not scriptable from the loop; would create false assurances.
 - Language versions. Version-pinning is the project's responsibility
   (package.json / go.mod / pyproject.toml); discovery only confirms
   executables exist.

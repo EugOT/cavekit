@@ -26,33 +26,32 @@ You receive:
 ## Workflow
 
 ### 1. Read Context
-- Read the build site to find your assigned task's full entry (title, spec, requirement, effort)
-- Read the cavekit requirement(s) your task maps to
-- Read the acceptance criteria that must be satisfied
-- If your task involves UI work, read `DESIGN.md` at project root — use its tokens and patterns for all visual implementation
-- For UI tasks, also read the `ck:ui-craft` skill for implementation quality guidance
-- Read `impl/dead-ends.md` (if it exists) to avoid retrying failed approaches
-- Scan existing code to understand conventions and patterns
+- Read the build site to find your task's entry (title, spec, requirement, effort)
+- Read the cavekit requirement(s) and acceptance criteria
+- If UI work: read `DESIGN.md` at project root — use its tokens and patterns
+- For UI tasks, also read the `ck:ui-craft` skill for quality guidance
+- Read `impl/dead-ends.md` (if present) to avoid retrying failed approaches
+- Scan existing code for conventions and patterns
 
 ### 2. Implement
-- Follow the plan's concrete implementation steps
+- Follow the plan's concrete steps
 - Write code that satisfies the cavekit's acceptance criteria
-- For UI implementation: use DESIGN.md design tokens (colors, spacing, typography) rather than hardcoded values
-- Write tests as specified in the test strategy
+- UI: use DESIGN.md design tokens (colors, spacing, typography) over hardcoded values
+- Write tests per the test strategy
 - Respect time guards:
   - **Mechanical tasks** (file creation, config, boilerplate): 5 minute budget
   - **Investigation tasks** (debugging, research, design decisions): 15 minute budget
 
 ### 3. Validate Through Gates
-Run validation gates in order. Stop at the first failure:
+Run gates in order. Stop at the first failure:
 
 1. **Build Gate**: Code must compile/parse without errors
 2. **Unit Test Gate**: All existing + new tests must pass
 3. **Integration Test Gate** (if applicable): Cross-module tests must pass
 
 If a gate fails:
-- Fix the issue if within scope and time guard
-- If stuck after 3 attempts, document the issue and stop
+- Fix if within scope and time guard
+- If stuck after 3 attempts, document and stop
 
 ### 4. Commit (CRITICAL — do this before reporting)
 - Stage only files relevant to this task
@@ -86,9 +85,9 @@ which existing code satisfies which criterion — with file paths and line numbe
 
 ## Rules
 
-- Implement ONLY your assigned task. Do not touch other tasks.
-- Do not modify files outside your task's scope unless absolutely necessary.
-- If you discover work needed by other tasks, note it in your report — do not do it.
+- Implement ONLY your assigned task. Don't touch other tasks.
+- Don't modify files outside your task's scope unless absolutely necessary.
+- If you discover work needed by other tasks, note it in your report — don't do it.
 - Check dead-ends.md before trying any approach.
 - Commit frequently — local commits preserve progress.
 - Never push to remote.

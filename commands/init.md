@@ -5,7 +5,7 @@ argument-hint: "[--tools-only [--summary-only]]"
 allowed-tools: ["Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs:*)", "Bash(cat .cavekit/capabilities.json)", "Bash(git *)", "Read(*)", "Write(*)", "Edit(*)", "Glob(*)"]
 ---
 
-**What this does:** Creates the full context hierarchy AND the autonomous-runtime state directory for a Cavekit project. With `--tools-only`, only re-detects available CLI tools, MCP servers, and plugins.
+**What this does:** Creates the full context hierarchy AND the autonomous-runtime state directory. With `--tools-only`, only re-detects available CLI tools, MCP servers, and plugins.
 **When to use it:** Once at the start of a project. Re-run any time — idempotent. Re-run with `--tools-only` after installing a new tool or when a task fails with "command not found".
 
 ## Mode: `--tools-only` (capability discovery only)
@@ -72,7 +72,7 @@ Creates the full context hierarchy and the runtime state directory.
 
 ## Step 0: Initialize Runtime State
 
-Run the runtime initializers. These are no-ops if `.cavekit/` already exists.
+Run the runtime initializers. No-ops if `.cavekit/` already exists.
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" init
@@ -109,17 +109,17 @@ Commit `.cavekit/config.json` and `.cavekit/history/` intentionally — they are
 
 ## Step 1: Scan Existing Project Structure
 
-Detect top-level directories that contain source code or other project artifacts:
+Detect top-level directories containing source code or project artifacts:
 - `src/`, `lib/`, `app/`, `pkg/`, `cmd/`, `internal/` (source directories)
 - `tests/`, `test/`, `spec/` (test directories)
 - `scripts/` (utility scripts)
-- Any other directories that contain code files (`.ts`, `.js`, `.py`, `.go`, `.rs`, `.java`, etc.)
+- Any other directories with code files (`.ts`, `.js`, `.py`, `.go`, `.rs`, `.java`, etc.)
 
-Record which directories exist — you'll create CLAUDE.md files for them in Step 3.
+Record which exist — you'll create CLAUDE.md files for them in Step 3.
 
 ## Step 2: Create Context Directories
 
-Create these directories if they don't exist:
+Create if missing:
 - `context/`
 - `context/refs/`
 - `context/kits/`
@@ -130,7 +130,7 @@ Create these directories if they don't exist:
 
 ## Step 3: Create CLAUDE.md Files
 
-Create each file below **only if it does not already exist**. Never overwrite.
+Create each file **only if it does not already exist**. Never overwrite.
 
 ### `context/CLAUDE.md`
 

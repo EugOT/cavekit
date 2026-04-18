@@ -10,9 +10,9 @@ description: >
 
 # Prompt Pipeline Design
 
-The prompt pipeline is the engine of SDD. Each numbered prompt drives one phase of the Hunt lifecycle (Spec, Plan, Implement, Iterate, Monitor). Prompts are structured markdown files that instruct an AI agent to perform a specific phase, with detailed information delegated to specs, plans, and reference materials.
+The prompt pipeline is the engine of SDD. Each numbered prompt drives one phase of the Hunt lifecycle (Spec, Plan, Implement, Iterate, Monitor). Prompts are structured markdown files that instruct an AI agent to perform a specific phase, delegating detailed information to specs, plans, and reference materials.
 
-**Core principle:** Prompts should be as lightweight and systemic as possible. They define the *process*, not the *content* -- specs and plans hold the content.
+**Core principle:** Prompts should be lightweight and systemic. They define the *process*, not the *content* -- specs and plans hold the content.
 
 ---
 
@@ -37,10 +37,10 @@ Pipeline Flow:
 
 ### Key behaviors
 
-- **Prompt 001** runs once or a few times to stabilize specs. It reads `context/refs/` and produces `context/kits/`.
-- **Prompt 002** reads specs and any existing implementation tracking (`context/impl/`). It produces plans that sequence the work.
-- **Prompt 003** reads plans and specs, implements code, runs validation gates, and updates `context/impl/` with progress.
-- **Prompts 002 and 003 modify each other's files.** This bidirectional flow is expected and healthy -- it is how the system self-corrects.
+- **Prompt 001** runs once or a few times to stabilize specs. Reads `context/refs/`, produces `context/kits/`.
+- **Prompt 002** reads specs and existing `context/impl/`. Produces plans that sequence the work.
+- **Prompt 003** reads plans and specs, implements code, runs validation gates, updates `context/impl/`.
+- **Prompts 002 and 003 modify each other's files.** This bidirectional flow is expected and healthy — it's how the system self-corrects.
 
 ### Example prompt 001 structure
 
@@ -75,7 +75,7 @@ Decompose the reference materials into domain-specific specifications:
 
 ## 2. Rewrite Pattern (6-9 Prompt Pipeline)
 
-For projects that start from existing code that must be reverse-engineered into specs before building a new implementation.
+For projects starting from existing code that must be reverse-engineered into specs before building a new implementation.
 
 ```
 Pipeline Flow:
@@ -103,24 +103,24 @@ Pipeline Flow:
 
 ### Rewrite-specific considerations
 
-- **Prompt 001** only runs once -- it extracts reference documentation from the old codebase.
-- **Prompt 003** is a validation pass -- it does not produce code, only a report on spec accuracy.
-- **Prompt 006** creates a feedback loop: prototype learnings flow back into specs, which then flow forward through 004 and 005 again.
-- The rewrite pipeline supports **multi-repo strategies**: shared specs can drive implementations in multiple frameworks simultaneously (e.g., evaluating framework A vs framework B using the same specs).
+- **Prompt 001** runs once — extracts reference documentation from the old codebase.
+- **Prompt 003** is a validation pass — produces only a report on spec accuracy, no code.
+- **Prompt 006** creates a feedback loop: prototype learnings flow back into specs, then forward through 004 and 005 again.
+- The rewrite pipeline supports **multi-repo strategies**: shared specs can drive implementations in multiple frameworks simultaneously (e.g., evaluating framework A vs B with the same specs).
 
 ---
 
 ## 3. Shared Principles Across All Pipelines
 
-These principles apply regardless of whether the pipeline is greenfield, rewrite, or hybrid.
+Applies regardless of pipeline type (greenfield, rewrite, or hybrid).
 
 | Principle | Detail |
 |-----------|--------|
 | **One prompt per Hunt phase** | Each prompt maps to exactly one phase. Do not combine phases. |
-| **Explicit input/output directories** | Every prompt declares what it reads and what it writes. No implicit side effects. |
-| **Git-based continuity** | Agents read git history (`git log`, `git diff`, `git status`) between iterations to understand what was done before. |
-| **Explicit done-conditions with termination markers** | Every prompt concludes with a verifiable checklist of conditions and a distinct output token that the iteration loop uses to detect completion. |
-| **Bidirectional spec/plan updates** | Plan prompts read impl tracking; implement prompts update plans. This cross-pollination is healthy. |
+| **Explicit input/output directories** | Every prompt declares what it reads and writes. No implicit side effects. |
+| **Git-based continuity** | Agents read git history (`git log`, `git diff`, `git status`) between iterations to understand prior work. |
+| **Explicit done-conditions with termination markers** | Every prompt concludes with a verifiable checklist and a distinct output token the iteration loop uses to detect completion. |
+| **Bidirectional spec/plan updates** | Plan prompts read impl tracking; implement prompts update plans. Cross-pollination is healthy. |
 | **Test generation on changed files** | After modifying source files, run test generation to maintain coverage. |
 | **Phase gates between prompts** | Before moving to the next prompt, verify: build passes, tests pass, acceptance criteria met. |
 
@@ -140,7 +140,7 @@ Prompt 003 (Implement):
   WRITES: context/plans/     (updates to plans based on implementation reality)
 ```
 
-This means running prompt 002 again after prompt 003 will incorporate implementation learnings into plans. Running prompt 003 again after prompt 002 will implement updated plans. This is exactly the convergence loop at work.
+Running prompt 002 again after 003 incorporates implementation learnings into plans. Running 003 again after 002 implements updated plans. This is the convergence loop at work.
 
 ---
 
@@ -148,7 +148,7 @@ This means running prompt 002 again after prompt 003 will incorporate implementa
 
 ### 4.1 Runtime Inputs
 
-Use runtime variables so prompts work across any project without modification:
+Use runtime variables so prompts work across any project:
 
 ```markdown
 ## Runtime Inputs
@@ -178,7 +178,7 @@ Agent Team Structure:
       Dispatch: Agent tool
 ```
 
-**Why:** Agents need to understand their role and what they own. Dispatch subagents via the Agent tool. After merging a subagent's branch, the caller must clean up: `git branch -D <branch>`.
+**Why:** Agents need to know their role and what they own. Dispatch subagents via the Agent tool. After merging a subagent's branch, the caller must clean up: `git branch -D <branch>`.
 
 ### 4.3 Batching Rules
 
@@ -209,7 +209,7 @@ Assign each shared file to exactly one teammate to eliminate merge conflicts:
 | `context/impl/impl-auth.md` | domain-auth |
 ```
 
-**Rule:** If two teammates need to modify the same file, assign ownership to one and have the other request changes through the lead.
+**Rule:** If two teammates need the same file, assign ownership to one; the other requests changes through the lead.
 
 ### 4.5 Exit Criteria and Completion Signals
 
@@ -278,7 +278,7 @@ Explicit halting conditions prevent irreversible or wasteful actions:
 
 ### 4.8 Sub-Agent Delegation
 
-Teammates should delegate discrete subtasks to sub-agents to preserve their own context window:
+Teammates delegate discrete subtasks to sub-agents to preserve their context window:
 
 ```markdown
 ## When to Use Sub-Agents
@@ -337,9 +337,9 @@ Use standardized task templates for consistent tracking across prompts:
 - **Status:** not yet created
 ```
 
-**`[CONDITIONAL]`** tasks include a skip condition -- if the condition is met, the task is skipped without failure.
+**`[CONDITIONAL]`** tasks include a skip condition — if met, skipped without failure.
 
-**`[DYNAMIC]`** tasks are placeholders created at runtime when a specific trigger occurs. They do not exist in the initial plan.
+**`[DYNAMIC]`** tasks are runtime placeholders created when a specific trigger occurs. They do not exist in the initial plan.
 
 ---
 
@@ -370,7 +370,7 @@ Per-task time budgets prevent agents from spending too long on any single task:
    - Document the blocker or open question
    - Move to the next unblocked task
 
-3. **Escalation:** If an agent hits time guards on multiple related tasks, this signals a systemic issue (fuzzy spec, missing dependency, architectural problem). Document it as a pattern, not individual failures.
+3. **Escalation:** Hitting time guards on multiple related tasks signals a systemic issue (fuzzy spec, missing dependency, architectural problem). Document as a pattern, not individual failures.
 
 ---
 
@@ -400,26 +400,26 @@ context/prompts/
 
 ### Step-by-step process
 
-1. **Identify your project type:** Greenfield (start from refs) or Rewrite (start from old code)?
+1. **Identify your project type:** Greenfield (from refs) or Rewrite (from old code)?
 2. **Start with the minimum pipeline:** Greenfield = 3 prompts. Rewrite = 6 prompts.
-3. **Write prompt 001 first:** This is always the spec generation step.
-4. **Define your runtime variables:** What framework, build command, test command?
-5. **Set exit criteria for each prompt:** What must be true before moving to the next phase?
+3. **Write prompt 001 first:** Always the spec generation step.
+4. **Define runtime variables:** What framework, build command, test command?
+5. **Set exit criteria for each prompt:** What must be true before moving on?
 6. **Add agent teams if needed:** For large projects, add team structure and file ownership.
-7. **Run the pipeline with the iteration loop:** Start with a small number of iterations (3-5) and increase as needed.
-8. **Watch for convergence:** Exponentially decreasing changes = convergence. Flat or oscillating changes = fix your specs.
+7. **Run with the iteration loop:** Start small (3-5 iterations), increase as needed.
+8. **Watch for convergence:** Exponentially decreasing changes = convergence. Flat or oscillating = fix your specs.
 
 ### When to add more prompts
 
-- If a single prompt is trying to do too much (reading AND writing specs, for example), split it.
-- If you see a phase producing inconsistent results, add a validation prompt between phases.
+- If a single prompt does too much (reading AND writing specs), split it.
+- If a phase produces inconsistent results, add a validation prompt between phases.
 - If back-propagation is frequent, add an explicit back-propagation prompt (006 in the rewrite pattern).
 
 ---
 
 ## 9. Iteration Loop Integration
 
-Prompts are designed to run inside an iteration loop that repeats them until convergence:
+Prompts run inside an iteration loop that repeats them until convergence:
 
 ```bash
 # Greenfield: Run implementation prompt with iteration loop

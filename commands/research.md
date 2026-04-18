@@ -21,7 +21,7 @@ Extract from `$ARGUMENTS`:
 - `--web-only` — skip codebase research (useful for greenfield)
 - `--codebase-only` — skip web research (air-gapped environments)
 
-If no description is provided, ask: "What are you building? (One sentence is enough)" and wait.
+If no description provided, ask: "What are you building? (One sentence is enough)" and wait.
 
 Generate a **topic slug** from the description — kebab-case, 2-4 words. Example: "Build a Verse compiler targeting WASM" → `verse-compiler`. "Add real-time collaboration" → `realtime-collab`.
 
@@ -35,12 +35,7 @@ Before dispatching any research agents:
 
 Use `EXPLORATION_MODEL` for codebase/web researchers and `REASONING_MODEL` for the synthesizer.
 
-For single-topic, quick briefs (depth: quick or a narrow scope), prefer
-dispatching the `ck:researcher` agent once instead of the full multi-agent
-fan-out. The agent follows the shared source-order contract (repo →
-graphify → references → web) and produces a standard brief with citations.
-Use the multi-agent flow below for broader topics, depth `standard`/`deep`,
-or when the description spans multiple independent subtopics.
+For single-topic, quick briefs (depth: quick or a narrow scope), prefer dispatching the `ck:researcher` agent once instead of the full multi-agent fan-out. The agent follows the shared source-order contract (repo → graphify → references → web) and produces a standard brief with citations. Use the multi-agent flow below for broader topics, depth `standard`/`deep`, or when the description spans multiple independent subtopics.
 
 ## Step 1: Assess Project Size
 
@@ -91,7 +86,7 @@ Map to project category:
 
 ### Project-Specific Sub-Questions
 
-Based on the description, generate **2–6 additional sub-questions** that target the specific technology decisions and domain knowledge needed. Assign each to the most relevant category agent.
+From the description, generate **2–6 additional sub-questions** targeting the specific technology decisions and domain knowledge needed. Assign each to the most relevant category agent.
 
 Examples:
 - "Build a Verse compiler targeting WASM" → "How do existing effect systems handle type inference in compilation?" → assigned to existing-art
@@ -141,7 +136,7 @@ Also ensure `context/refs/` exists.
 
 ### Wave 1: Codebase Agents + Foundation Web Agents
 
-Dispatch all of these **in parallel** (multiple Agent calls in one message):
+Dispatch **in parallel** (multiple Agent calls in one message):
 
 **Each codebase agent** (subagent_type: `Explore`, model: `EXPLORATION_MODEL`):
 
@@ -218,7 +213,7 @@ After all wave 1 agents complete:
 
 ### Wave 2: Dependent Web Agents
 
-Skip this step for `quick` depth.
+Skip for `quick` depth.
 
 Dispatch remaining web agents **in parallel** (subagent_type: `general-purpose`, model: `EXPLORATION_MODEL`):
 

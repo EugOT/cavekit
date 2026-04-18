@@ -10,7 +10,7 @@ allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh:*)", "Bash(${
 
 # Cavekit Make — Autonomous Implementation
 
-This is the third phase of Cavekit. Execute the setup script:
+Third phase of Cavekit. Execute the setup script:
 
 ```!
 "${CLAUDE_PLUGIN_ROOT}/scripts/setup-build.sh" $ARGUMENTS
@@ -18,34 +18,18 @@ This is the third phase of Cavekit. Execute the setup script:
 
 ## Autonomous Runtime Mode (when `.cavekit/` is present)
 
-`setup-build.sh` already calls `cavekit-tools setup-loop` when `node` is on
-`$PATH`, which activates the **stop-hook** (`hooks/stop-hook.sh`). While
-the hook is active, the session is automatically re-prompted after every
-Stop event with the next wave — you do NOT need to re-read the build site
-between tasks yourself. The hook does it for you.
+`setup-build.sh` calls `cavekit-tools setup-loop` when `node` is on `$PATH`, activating the **stop-hook** (`hooks/stop-hook.sh`). While active, the session is automatically re-prompted after every Stop event with the next wave — you do NOT need to re-read the build site between tasks.
 
-Also load, once at the top of the run, the behavioral skills that every
-task-builder must follow:
+Load once at the top of the run, the behavioral skills every task-builder must follow:
 
-- `karpathy-guardrails` — think-before-code, simplicity, surgical changes,
-  goal-driven execution. Applied per task.
-- `autonomous-loop` — the state-machine contract (sentinels, phases, lock
-  protocol). Informs how you emit status.
-- `caveman-internal` — intensity mode (lite / full / ultra) for your own
-  internal artifacts. Consult `cavekit-tools intensity` when writing
-  artifact summaries or handoff memos.
+- `karpathy-guardrails` — think-before-code, simplicity, surgical changes, goal-driven execution. Applied per task.
+- `autonomous-loop` — state-machine contract (sentinels, phases, lock protocol). Informs how you emit status.
+- `caveman-internal` — intensity mode (lite / full / ultra) for your own internal artifacts. Consult `cavekit-tools intensity` when writing artifact summaries or handoff memos.
 
-When the stop-hook routes a wave prompt, the parent session executes the
-wave according to the resolved execution mode (see "Resolve Execution
-Profile" below):
+When the stop-hook routes a wave prompt, the parent session executes the wave according to the resolved execution mode (see "Resolve Execution Profile" below):
 
-- **Inline mode (`TB_ISOLATION=inline`, default):** the parent session
-  implements each task directly — no subagent dispatch. The router below
-  is not consulted because model selection is whatever the parent session
-  is on.
-- **Subagent mode (`TB_ISOLATION=worktree`, used by `/ck:make-parallel`
-  and by users who explicitly configure it):** dispatch `ck:task-builder`
-  subagents using the recommended model tier from:
+- **Inline mode (`TB_ISOLATION=inline`, default):** the parent session implements each task directly — no subagent dispatch. The router below is not consulted because model selection is whatever the parent session is on.
+- **Subagent mode (`TB_ISOLATION=worktree`, used by `/ck:make-parallel` and by users who explicitly configure it):** dispatch `ck:task-builder` subagents using the recommended model tier from:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-router.cjs" classify-task \
@@ -54,36 +38,28 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-router.cjs" classify-task \
   --budget-pressure <pressure>
 ```
 
-When a task completes, mark it complete in the registry so the next wave
-can unblock downstream tasks:
+When a task completes, mark it complete in the registry so the next wave can unblock downstream tasks:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" mark-complete --task T-XXX
 ```
 
-Before writing artifact summaries, handoff memos, or wave logs, consult
-the intensity resolver once per wave:
+Before writing artifact summaries, handoff memos, or wave logs, consult the intensity resolver once per wave:
 
 ```bash
 INTENSITY=$(node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" intensity)
 # INTENSITY ∈ {lite, full, ultra}
 ```
 
-Apply that intensity to internal artifacts per the `caveman-internal`
-skill. User-facing wave status still respects the existing
-`caveman-active build` check (the two are independent by design).
+Apply that intensity to internal artifacts per the `caveman-internal` skill. User-facing wave status still respects the existing `caveman-active build` check (the two are independent by design).
 
-When the stop-hook reports `CAVEKIT_LOOP_DONE` (all tasks `complete`), emit
-the completion sentinel on its own line as the final message:
+When the stop-hook reports `CAVEKIT_LOOP_DONE` (all tasks `complete`), emit the completion sentinel on its own line as the final message:
 
 ```
 <promise>CAVEKIT COMPLETE</promise>
 ```
 
-If `.cavekit/task-status.json` does not exist (user did not run `/ck:init`
-or `/ck:map` before this run), fall back to the legacy Ralph-loop flow
-below. The two paths are mutually exclusive: either the stop-hook drives,
-or the agent re-reads `.claude/ralph-loop.local.md` itself.
+If `.cavekit/task-status.json` does not exist (user did not run `/ck:init` or `/ck:map` before this run), fall back to the legacy Ralph-loop flow below. The two paths are mutually exclusive: either the stop-hook drives, or the agent re-reads `.claude/ralph-loop.local.md` itself.
 
 ## Resolve Execution Profile
 
@@ -95,23 +71,23 @@ Before starting waves:
 4. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" get task_builder_isolation` and treat the result as `TB_ISOLATION` (`inline` or `worktree`). Default is `inline`.
 5. Run `"${CLAUDE_PLUGIN_ROOT}/scripts/bp-config.sh" get parallelism_max_per_repo` and treat the result as `MAX_PARALLEL` (positive integer; default `1`).
 6. Use `EXECUTION_MODEL` in every `ck:task-builder` delegation below (only applies when `TB_ISOLATION=worktree`). Do not hard-code `opus`, `sonnet`, or `haiku` in this command.
-7. If `CAVEMAN_ACTIVE` is `true`, all your own wave logs, iteration summaries, and status reports in this command should use caveman-speak (drop articles, filler, pleasantries — keep technical terms exact, code blocks unchanged). Spec artifacts (kits, build sites, impl tracking field values) stay in normal prose.
+7. If `CAVEMAN_ACTIVE` is `true`, all your own wave logs, iteration summaries, and status reports should use caveman-speak (drop articles, filler, pleasantries — keep technical terms exact, code blocks unchanged). Spec artifacts (kits, build sites, impl tracking field values) stay in normal prose.
 
 **To run with parallel subagents instead of inline**, use `/ck:make-parallel` (a separate command that defaults to `TB_ISOLATION=worktree` and `MAX_PARALLEL=3`).
 
 **Execution mode matrix (after config + flag overrides):**
-- `TB_ISOLATION=inline` and `MAX_PARALLEL=1` (default) — **no subagent is spawned.** The parent session implements each task directly: read context, edit files, run validation, commit, move to the next task. This is the confirmed-stable ralph-loop path — no Agent dispatch, no worktree, no merge. Trade-off: parent session runs under whatever model the user is on, not `EXECUTION_MODEL`.
+- `TB_ISOLATION=inline` and `MAX_PARALLEL=1` (default) — **no subagent is spawned.** The parent session implements each task directly: read context, edit files, run validation, commit, move to the next task. Confirmed-stable ralph-loop path — no Agent dispatch, no worktree, no merge. Trade-off: parent session runs under whatever model the user is on, not `EXECUTION_MODEL`.
 - `TB_ISOLATION=worktree` and `MAX_PARALLEL=1` — one `ck:task-builder` subagent per wave, inside an isolated git worktree. Sequential; the parent merges after the packet returns.
 - `TB_ISOLATION=worktree` and `MAX_PARALLEL>1` — up to `MAX_PARALLEL` `ck:task-builder` subagents per wave in isolated worktrees. Opt-in via `--parallel` or config. Can hit Claude-Code-harness worktree races on some builds.
 - `TB_ISOLATION=inline` with `MAX_PARALLEL>1` is unsupported (inline is inherently sequential). Clamp `MAX_PARALLEL` to `1` and log a note.
 
 ## Pre-flight Coverage Check
 
-Before entering the execution loop, validate that the build site covers all cavekit requirements:
+Before entering the execution loop, validate the build site covers all cavekit requirements:
 
 1. Read the build site and all cavekit files referenced in it
-2. If the build site contains a **Coverage Matrix** section, scan it for any rows with status `GAP`
-3. If no Coverage Matrix exists, perform a quick manual check: for each cavekit requirement, confirm at least one task in the build site references it
+2. If the build site contains a **Coverage Matrix** section, scan for any rows with status `GAP`
+3. If no Coverage Matrix exists, perform a quick manual check: for each cavekit requirement, confirm at least one task references it
 4. **If gaps are found**, report them before starting:
    ```
    ⚠ COVERAGE GAPS DETECTED — {n} acceptance criteria have no assigned task:
@@ -121,20 +97,20 @@ Before entering the execution loop, validate that the build site covers all cave
    Run `/ck:map` to regenerate the build site with full coverage, or continue with known gaps.
    ```
    Ask the user whether to proceed or stop. Do NOT silently continue with gaps.
-5. If no gaps are found, log: `✓ Pre-flight coverage check passed — all criteria mapped to tasks.`
+5. If no gaps: `✓ Pre-flight coverage check passed — all criteria mapped to tasks.`
 
 ## If site selection is required
 
-If the output contains `CAVEKIT_SITE_SELECTION_REQUIRED=true`, multiple build sites/plans were found. **Ask the user which one to implement.** Then re-run with `--filter <their-choice>`.
+If output contains `CAVEKIT_SITE_SELECTION_REQUIRED=true`, multiple build sites/plans were found. **Ask the user which one to implement.** Then re-run with `--filter <their-choice>`.
 
 ## Execution Loop
 
-Once the setup script completes (outputs the ralph prompt), you run the execution loop autonomously. Progress through all tiers without stopping.
+Once setup completes (outputs the ralph prompt), run the execution loop autonomously. Progress through all tiers without stopping.
 
 ### Each Wave
 
 1. **Read state**: Read the build site/plan + scoped `context/impl/impl-*.md` files + `context/impl/dead-ends.md`. **Scoping rule:** only read impl files that contain `Build site: <this site's path>` (or matching basename). Ignore impl files declaring a different build site. If no scoped files exist, fall back to reading all impl files. If this is the first wave of a new tier, capture the tier start ref: `TIER_START_REF=$(git rev-parse HEAD)`
-2. **Compute frontier**: Find all tasks that are NOT done AND whose `blockedBy` dependencies are ALL done
+2. **Compute frontier**: Find all tasks NOT done AND whose `blockedBy` dependencies are ALL done
 3. **Report**:
    ```
    ═══ Wave {N} ═══
@@ -192,7 +168,7 @@ Once the setup script completes (outputs the ralph prompt), you run the executio
       ```
    8. Move to the next packet. No merge, no worktree, no Agent dispatch.
 
-   Inline mode runs under whatever model the parent session is using. It does **not** honor `EXECUTION_MODEL` — if the user needs a specific model for task implementation, they must switch to worktree mode (below) or set the parent session to that model.
+   Inline mode runs under whatever model the parent session is using. It does **not** honor `EXECUTION_MODEL` — if the user needs a specific model for task implementation, switch to worktree mode (below) or set the parent session to that model.
 
    ---
 
@@ -291,19 +267,19 @@ Once the setup script completes (outputs the ralph prompt), you run the executio
      If team mode is active for that packet, stop its heartbeat PID first (SIGTERM, wait up to 5s, then SIGKILL if needed), then:
      - on successful merge + validation, run `cavekit team release T-XXX --complete`
      - on failed merge, validation failure, or harness-level BLOCKED result, run `cavekit team release T-XXX --note "<reason>"`
-   - **If `TB_ISOLATION=inline`**: no merge or worktree cleanup — the parent session's commits already landed on the current branch. Optionally run `git log --oneline {TIER_START_REF}..HEAD` to confirm the expected task commits are present.
+   - **If `TB_ISOLATION=inline`**: no merge or worktree cleanup — commits already landed on the current branch. Optionally run `git log --oneline {TIER_START_REF}..HEAD` to confirm expected task commits are present.
    - Update `context/impl/impl-*.md` with status for each completed task
    - Record any dead ends in `context/impl/dead-ends.md`
-   - Update `context/impl/loop-log.md` with an iteration entry. **If `CAVEMAN_ACTIVE` is true**, compress the loop-log entry to a dense one-liner per task using caveman-speak. Instead of verbose iteration summaries, write compact entries like:
+   - Update `context/impl/loop-log.md` with an iteration entry. **If `CAVEMAN_ACTIVE` is true**, compress the loop-log entry to a dense one-liner per task using caveman-speak:
      ```
      ### Iteration {N} — {date}
      - T-{id}: {title} — DONE. Files: {list}. Build P, Tests P. Next: T-{ids}
      ```
      The log stays searchable but uses a fraction of the context window. Field names (Task, Status, Files, Validation, Next) can be abbreviated. If `CAVEMAN_ACTIVE` is false, use the standard verbose format.
 
-6. **Tier boundary check** — after updating impl tracking, check whether all tasks in the current tier are now done. If the current tier still has undone tasks, skip this step. If the tier is complete, run the Codex tier gate review (the `TIER_START_REF` was captured in step 1 at the start of this tier):
+6. **Tier boundary check** — after updating impl tracking, check whether all tasks in the current tier are done. If the tier still has undone tasks, skip this step. If complete, run the Codex tier gate review (the `TIER_START_REF` was captured in step 1 at the start of this tier):
 
-   a. Source `codex-config.sh` and check `tier_gate_mode` via `bp_config_get tier_gate_mode`. If the value is `"off"`, skip the review and log:
+   a. Source `codex-config.sh` and check `tier_gate_mode` via `bp_config_get tier_gate_mode`. If `"off"`, skip the review and log:
       ```
       [ck:tier-gate] Tier gate review disabled (tier_gate_mode=off). Skipping.
       ```
@@ -313,7 +289,7 @@ Once the setup script completes (outputs the ralph prompt), you run the executio
       [ck:tier-gate] Codex unavailable — skipping tier boundary review. Continuing to next tier.
       ```
 
-   c. Otherwise, run the review inline (wait for it to complete before advancing):
+   c. Otherwise, run the review inline (wait for completion before advancing):
       ```
       scripts/codex-review.sh --base $TIER_START_REF
       ```
@@ -350,12 +326,12 @@ Tasks completed: {done}/{total}
 
 ### Post-Build: Cavekit Verification
 
-Before updating CLAUDE.md, verify that the build actually satisfies the kits:
+Before updating CLAUDE.md, verify the build actually satisfies the kits:
 
 1. Read all cavekit files and the build site's Coverage Matrix (if present)
 2. For each cavekit requirement and its acceptance criteria, cross-reference against impl tracking:
    - Is the task marked DONE in impl tracking?
-   - Does the task's scope actually cover this specific criterion? (A task being DONE does not mean every criterion it was supposed to cover is actually met)
+   - Does the task's scope actually cover this specific criterion? (A task being DONE does not mean every criterion is actually met)
 3. Produce a brief coverage summary:
    ```
    ═══ Cavekit Verification ═══
@@ -363,7 +339,7 @@ Before updating CLAUDE.md, verify that the build actually satisfies the kits:
    Acceptance Criteria: {verified}/{total}
    Gaps: {list any unmet criteria, or "None"}
    ```
-4. If gaps are found (criteria not covered by completed tasks):
+4. If gaps are found:
    - Log each gap with its cavekit reference
    - Add the gaps as new tasks to the build site (append to the highest tier + 1)
    - Report: `{n} gap(s) found — {n} remediation tasks added to build site. Run /ck:make again to address.`
@@ -371,10 +347,10 @@ Before updating CLAUDE.md, verify that the build actually satisfies the kits:
 
 ### Post-Build: Update CLAUDE.md Hierarchy
 
-After BUILD COMPLETE and before the completion promise, update the context hierarchy:
+After BUILD COMPLETE and before the completion promise:
 
-1. **Read the build site** to get task-to-cavekit-requirement mappings
-2. **Read `git diff --name-only` against the pre-build ref** to identify which source files were created/modified during the build
+1. **Read the build site** for task-to-cavekit-requirement mappings
+2. **Read `git diff --name-only` against the pre-build ref** to identify which source files were created/modified
 3. **For each source directory that was touched** (e.g., `src/auth/`, `src/api/`):
    - If no `CLAUDE.md` exists in that directory: create one with cavekit/plan references derived from the tasks that touched those files:
      ```markdown

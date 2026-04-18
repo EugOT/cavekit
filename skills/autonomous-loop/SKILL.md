@@ -10,9 +10,7 @@ description: |
 
 # Autonomous Loop
 
-The loop lets a single `/ck:make` invocation run dozens of agent iterations
-without user intervention, while still respecting per-task budgets, session
-budgets, and explicit user-approval gates.
+The loop lets a single `/ck:make` invocation run dozens of agent iterations without user intervention, while respecting per-task budgets, session budgets, and explicit user-approval gates.
 
 ## Architecture
 
@@ -58,7 +56,7 @@ All under `<project>/.cavekit/`:
    ```
    node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" setup-loop
    ```
-   This writes `.loop.json` (activating the stop hook) and resets `state.md`.
+   Writes `.loop.json` (activating the stop hook) and resets `state.md`.
 
 2. **Work** — the agent does one wave of task execution per iteration.
 
@@ -71,8 +69,7 @@ All under `<project>/.cavekit/`:
    - prepends the backprop directive if the flag file exists
    - returns `{"decision":"block","reason":<next prompt>}`
 
-4. **Repeat** — Claude Code treats `decision:block` + `reason:...` as a new
-   user message, so the session continues.
+4. **Repeat** — Claude Code treats `decision:block` + `reason:...` as a new user message, so the session continues.
 
 5. **Teardown** — one of:
    - completion sentinel detected
@@ -89,14 +86,11 @@ To end the loop cleanly, emit exactly:
 <promise>CAVEKIT COMPLETE</promise>
 ```
 
-The hook searches for this literal in the last 20 transcript lines. Put it on
-its own line at the very end of the final message. Do not wrap it in code
-fences or paraphrase it — the search is a literal substring match.
+The hook searches for this literal in the last 20 transcript lines. Put it on its own line at the very end of the final message. Do not wrap it in code fences or paraphrase it — the search is a literal substring match.
 
 ## Terminal sentinels
 
-When `routeDecision()` cannot safely continue, it returns one of these
-strings instead of a prompt:
+When `routeDecision()` cannot safely continue, it returns one of these strings instead of a prompt:
 
 | Sentinel                     | Meaning                               |
 |------------------------------|---------------------------------------|
@@ -113,12 +107,10 @@ The lock is a JSON file (`.loop.lock`) with `{owner, pid, host, heartbeat_at}`.
 
 - **Owner tag**: `session:<session_id>`.
 - **Heartbeat**: every Stop invocation refreshes `heartbeat_at`.
-- **Stale**: > 5 minutes since last heartbeat. A new session may steal a stale
-  lock.
+- **Stale**: > 5 minutes since last heartbeat. A new session may steal a stale lock.
 - **Conflict**: non-owner with fresh lock → returns `CAVEKIT_LOCK_CONFLICT`.
 
-Never delete `.loop.lock` while a session might be active. Use
-`cavekit-tools release-lock --owner <tag>` instead.
+Never delete `.loop.lock` while a session might be active. Use `cavekit-tools release-lock --owner <tag>` instead.
 
 ## Debugging a stuck loop
 
@@ -136,8 +128,7 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" route
 node "${CLAUDE_PLUGIN_ROOT}/scripts/cavekit-tools.cjs" teardown-loop
 ```
 
-Turn on debug logging by exporting `CAVEKIT_DEBUG=1`. The hook will write to
-`.cavekit/.debug.log`.
+Turn on debug logging by exporting `CAVEKIT_DEBUG=1`. The hook writes to `.cavekit/.debug.log`.
 
 ## What not to do
 

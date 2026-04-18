@@ -13,16 +13,14 @@ description: >
 
 # Documentation Inversion
 
-Traditional documentation drifts out of sync because it lives separately from the code. Documentation inversion places guidance directly in the codebase, structured for agent consumption, so that AI can explore the source and find current information on demand.
+Traditional documentation drifts out of sync because it lives separately from the code. Documentation inversion places guidance directly in the codebase, structured for agent consumption, so AI can explore the source and find current information on demand.
 
 ## Core Principle
 
 > **Structure documentation for programmatic navigation -- hierarchical, cross-referenced, with
 > explicit entry points -- so that AI agents can find what they need without human guidance.**
 
-Traditional documentation assumes a human reader who will browse, search, and interpret context.
-Agent-first documentation assumes a machine reader that needs: explicit entry points, structured
-hierarchies, cross-references it can follow programmatically, and guidance on what to explore next.
+Traditional docs assume a human reader who browses, searches, and interprets. Agent-first docs assume a machine reader needing explicit entry points, structured hierarchies, programmatically-followable cross-references, and guidance on what to explore next.
 
 ---
 
@@ -45,17 +43,17 @@ Developer ships a feature → Writes a wiki article explaining it
 ```
 
 **Why it rots:**
-- Documentation is a second-class artifact -- the incentive is to ship code, not update docs
-- The audience (humans) may not notice staleness until they hit a problem
-- There is no automated validation that docs match code
+- Documentation is a second-class artifact -- incentive is to ship code, not update docs
+- Human audience may not notice staleness until they hit a problem
+- No automated validation that docs match code
 - Docs live in a separate system (wiki, Notion) disconnected from the codebase
 - Nobody owns documentation maintenance as a primary responsibility
 
 ### The Cost of Rot
 
 - New team members learn wrong patterns from stale docs
-- AI agents given stale docs produce code based on outdated assumptions
-- Time spent debugging issues caused by following outdated guidance
+- AI agents produce code based on outdated assumptions
+- Time spent debugging issues caused by outdated guidance
 - Tribal knowledge accumulates in chat, not in any durable format
 
 ---
@@ -79,8 +77,7 @@ Developer modifies a module → Updates the co-located CLAUDE.md in the same PR
 **Why it stays current:**
 - CLAUDE.md files live *in the codebase*, next to the code they describe
 - They are loaded automatically by AI agents when entering a directory
-- Skills teach agents *how to explore*, not *what the code currently does* -- so they stay
-  accurate even as implementation details change
+- Skills teach agents *how to explore*, not *what the code currently does* -- so they stay accurate even as implementation changes
 - The agent reads current source code, guided by the skill -- the source is the documentation
 - Code review can enforce CLAUDE.md updates alongside code changes
 
@@ -138,8 +135,7 @@ Place a `CLAUDE.md` file at the root of each significant module, library, or dir
 
 ### Step 2: Create Navigation Skills
 
-A navigation skill teaches the agent *how to explore* a library or module. It does not
-describe the library's current state -- it describes the *process* for understanding it.
+A navigation skill teaches the agent *how to explore* a library. It does not describe the library's current state -- it describes the *process* for understanding it.
 
 **Navigation Skill Template:**
 
@@ -190,8 +186,8 @@ description: >
 
 **Why skills work better than static docs:**
 - The skill tells the agent *what to do*, not what the code is
-- The agent then reads the *current* source code to understand what the code is
-- The process described in the skill remains valid even as the code changes
+- The agent reads the *current* source to understand what the code is
+- The process stays valid even as code changes
 - It is a recipe, not a snapshot
 
 ### Step 3: Package as a Plugin
@@ -225,7 +221,7 @@ When an agent encounters the library:
 1. The plugin's skills appear in the agent's available skill set
 2. Agent loads the navigation skill when it needs to work with the library
 3. Skill guides the agent to read CLAUDE.md files and explore current source
-4. Agent builds understanding from current code, not stale documentation
+4. Agent builds understanding from current code, not stale docs
 
 ---
 
@@ -316,8 +312,7 @@ User authentication: login, logout, session management, OAuth, rate limiting.
 
 ## CLAUDE.md Hierarchy and Inheritance
 
-CLAUDE.md files are hierarchical -- an agent entering a directory loads the CLAUDE.md from
-that directory AND all parent directories up to the project root.
+CLAUDE.md files are hierarchical -- an agent entering a directory loads the CLAUDE.md from that directory AND all parent directories up to the project root.
 
 ```
 project/
@@ -369,7 +364,7 @@ project/
 1. Add to code review checklist: "Does this change need a CLAUDE.md update?"
 2. When new modules are created, require a CLAUDE.md as part of the PR
 3. When existing docs are found to be stale, update the CLAUDE.md (not the wiki)
-4. Gradually, the CLAUDE.md files become the authoritative source
+4. Gradually, CLAUDE.md files become the authoritative source
 
 ### Phase 4: Deprecate the Wiki (When Ready)
 
@@ -403,8 +398,7 @@ project/
 
 ### 1. CLAUDE.md as a Code Dump
 **Problem:** CLAUDE.md lists every file and function in the module.
-**Fix:** Focus on entry points and navigation, not exhaustive inventory. The agent can
-read the directory listing itself.
+**Fix:** Focus on entry points and navigation, not exhaustive inventory. The agent can read the directory listing itself.
 
 ### 2. Narrative Prose Instead of Structure
 **Problem:** CLAUDE.md reads like a blog post about the module's history.
@@ -412,18 +406,15 @@ read the directory listing itself.
 
 ### 3. Duplicating Code Comments
 **Problem:** CLAUDE.md repeats what is already in code comments and docstrings.
-**Fix:** CLAUDE.md should describe the *module-level* view -- architecture, conventions,
-entry points. Code comments handle the *function-level* view.
+**Fix:** CLAUDE.md describes the *module-level* view -- architecture, conventions, entry points. Code comments handle the *function-level* view.
 
 ### 4. Never Updating CLAUDE.md
 **Problem:** CLAUDE.md is written once and never touched again.
-**Fix:** Make CLAUDE.md updates part of the code review process. If you changed the
-module's architecture, update the CLAUDE.md.
+**Fix:** Make CLAUDE.md updates part of code review. If you changed the module's architecture, update the CLAUDE.md.
 
 ### 5. One Giant CLAUDE.md at the Root
 **Problem:** All documentation is in a single root CLAUDE.md file.
-**Fix:** Use the hierarchy. Root CLAUDE.md has project-wide conventions; each module
-has its own CLAUDE.md with module-specific guidance. This mirrors progressive disclosure.
+**Fix:** Use the hierarchy. Root CLAUDE.md has project-wide conventions; each module has its own CLAUDE.md with module-specific guidance. This mirrors progressive disclosure.
 
 ---
 
@@ -439,8 +430,7 @@ Documentation inversion is a natural extension of SDD's context architecture:
 | Skills encoding reusable procedures | Navigation skills encoding reusable exploration workflows |
 | Plugins as a distribution mechanism | Documentation plugins bundling skills for installation into other projects |
 
-The key insight from SDD applies directly: **strong documentation enables agents to orient
-themselves in unfamiliar code and contribute meaningfully without step-by-step human direction.**
+The key SDD insight applies directly: **strong documentation enables agents to orient themselves in unfamiliar code and contribute meaningfully without step-by-step human direction.**
 
 ---
 

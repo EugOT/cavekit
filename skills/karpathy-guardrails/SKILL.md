@@ -11,8 +11,7 @@ description: |
 
 # Karpathy Guardrails
 
-Four rules. Load them into context at the start of every task. The reviewer
-enforces them as a Pass-1 filter before it looks at code quality.
+Four rules. Load at the start of every task. The reviewer enforces them as a Pass-1 filter before code quality.
 
 ## 1. Think Before Coding
 
@@ -25,8 +24,7 @@ Before the first edit, write down:
   test, check, or observable behaviour. If a criterion is not verifiable,
   propose a sharpening via the `revision` skill (automated-trace subsection), not a vague attempt.
 
-Refusing to produce code is allowed. A task with unknown scope is a spec bug,
-not a coding task.
+Refusing to produce code is allowed. A task with unknown scope is a spec bug, not a coding task.
 
 ## 2. Simplicity First
 
@@ -38,22 +36,18 @@ The correct amount of code is the minimum that meets the acceptance criteria.
 - Duplication is not always wrong. Three similar lines usually beat a premature
   abstraction with two configuration knobs.
 
-If the diff is larger than the acceptance criteria seem to demand, explain why
-in the commit body. If you cannot, trim the diff.
+If the diff is larger than the acceptance criteria demand, explain why in the commit body. If you cannot, trim the diff.
 
 ## 3. Surgical Changes
 
-Every line in the diff must trace back to an acceptance criterion. Touching
-code outside the task's owned files is justified only when a requirement forces
-it. Examples of violations:
+Every line in the diff must trace back to an acceptance criterion. Touching code outside the task's owned files is justified only when a requirement forces it. Violations:
 
 - Fixing a formatter warning in an unrelated file.
 - Renaming a helper "to match new convention."
 - Reordering imports, docstrings, whitespace.
 - Tightening a type signature the task did not ask about.
 
-If you see a real bug in adjacent code, log it to `.cavekit/history/backprop-log.md`
-as a candidate kit item and keep it out of this task's diff.
+If you see a real bug in adjacent code, log it to `.cavekit/history/backprop-log.md` as a candidate kit item and keep it out of this task's diff.
 
 ## 4. Goal-Driven Execution
 
@@ -66,18 +60,14 @@ Transform vague tasks into verifiable success criteria before execution.
 
 ## Role-specific enforcement
 
-- **task-builder** — must produce, alongside code, a Verification Report listing
+- **task-builder** — produces, alongside code, a Verification Report listing
   each AC, the verification step, and the observed result.
-- **reviewer** — must refuse to advance to Pass 2 (code quality) if Pass 1 finds
+- **reviewer** — refuses to advance to Pass 2 (code quality) if Pass 1 finds
   any of: undeclared assumptions, diff lines unjustified by an AC, out-of-scope
   edits, or unreachable verification steps.
-- **planner** — must reject kits that contain un-testable ACs. They are spec
-  bugs and block planning.
-- **inspector** — must flag completed tasks whose verification logs are missing
-  or hand-waved.
+- **planner** — rejects kits that contain un-testable ACs. Spec bugs block planning.
+- **inspector** — flags completed tasks whose verification logs are missing or hand-waved.
 
 ## When you are tempted to break a rule
 
-You are probably over-confident about a shortcut that will cost more than the
-delay of asking. Stop and note the tension in the commit body or in the build
-log so the reviewer can judge.
+You are probably over-confident about a shortcut that will cost more than the delay of asking. Stop and note the tension in the commit body or build log so the reviewer can judge.

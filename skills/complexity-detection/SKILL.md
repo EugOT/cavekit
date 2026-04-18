@@ -11,7 +11,7 @@ description: |
 
 # Complexity Detection
 
-A deterministic scoring rubric. Five axes, 0–4 each, summed to 0–20.
+Deterministic scoring rubric. Five axes, 0–4 each, summed to 0–20.
 
 ## Axes
 
@@ -33,14 +33,14 @@ Total score maps to:
 
 ## Override signals
 
-Upgrade one step regardless of score when any of these are true:
+Upgrade one step regardless of score when any are true:
 
 - Security-sensitive: authentication, authorization, crypto, secrets, PII.
 - Data migration that is not reversible.
 - Public API shape change (breaking).
 - Performance-critical hot path with an existing SLA.
 
-Downgrade one step only when **all** of these are true:
+Downgrade one step only when **all** are true:
 
 - Zero new dependencies.
 - Existing tests cover the change.
@@ -55,13 +55,11 @@ Downgrade one step only when **all** of these are true:
 | standard | 20 000       | sonnet     | required  | unit + integration          |
 | thorough | 45 000       | sonnet/opus| mandatory | unit + integration + E2E    |
 
-These defaults are recorded in `.cavekit/config.json` under `task_budgets`
-and consumed by the `cavekit-router.cjs` model router.
+Recorded in `.cavekit/config.json` under `task_budgets` and consumed by the `cavekit-router.cjs` model router.
 
 ## How agents score
 
-The `ck:complexity` subagent (haiku) receives a task description and returns
-a JSON blob:
+The `ck:complexity` subagent (haiku) receives a task description and returns JSON:
 
 ```json
 {
@@ -74,26 +72,20 @@ a JSON blob:
 }
 ```
 
-`/ck:map` calls this agent per task to set `depth` in the task registry. If
-the agent produces a score in the "thorough" band with a novelty of 4 and a
-security override, it may return `needs_research: true`, which `/ck:map` must
-translate into an upstream `ck:researcher` task dependency before the work
-itself.
+`/ck:map` calls this agent per task to set `depth` in the task registry. If the agent produces a "thorough" score with novelty 4 and a security override, it may return `needs_research: true`, which `/ck:map` translates into an upstream `ck:researcher` task dependency before the work itself.
 
 ## Integration points
 
 - `/ck:sketch` — runs complexity scoring on the whole domain to set the kit's
   `complexity:` frontmatter.
 - `/ck:map` — runs it per task to assign `depth`.
-- `/ck:make` — reads `depth` to size the task budget and pick the review
-  intensity.
+- `/ck:make` — reads `depth` to size the task budget and pick the review intensity.
 - `ck:complexity` agent — pure-haiku worker; does nothing else.
 
 ## Anti-patterns
 
-- Using one depth for every task in a kit "for consistency." Cost up, signal
-  down.
-- Padding depth to "be safe" — if the budget is oversized, the model wastes
-  tokens exploring. Right-size, then raise only when verification fails.
+- Using one depth for every task in a kit "for consistency." Cost up, signal down.
+- Padding depth to "be safe" — oversized budgets make the model waste tokens
+  exploring. Right-size, then raise only when verification fails.
 - Ignoring overrides — scoring a login flow as "quick" because it touches one
   file. Security overrides exist for exactly this reason.

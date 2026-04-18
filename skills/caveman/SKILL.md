@@ -72,7 +72,7 @@ max = concurrent connections. Keep under DB limit. idleTimeout kill stale conn.
 
 ### Lite — trim the fat
 
-Professional tone, just no fluff. Grammar stays intact.
+Professional tone, no fluff. Grammar intact.
 
 - Drop filler and pleasantries (same list as full)
 - Drop hedging
@@ -85,7 +85,7 @@ Classic caveman. Rules from Grammar section above apply.
 
 ### Ultra — maximum grunt
 
-Telegraphic. Every word earn its place or die.
+Telegraphic. Every word earns its place or dies.
 
 - All full rules, plus:
 - Abbreviate common terms (DB, auth, config, req, res, fn, impl)
@@ -123,7 +123,7 @@ Telegraphic. Every word earn its place or die.
 
 ## Cavekit Integration
 
-When caveman_mode is enabled in Cavekit config (on by default), caveman-speak is automatically applied to:
+When caveman_mode is enabled in Cavekit config (on by default), caveman-speak auto-applies to:
 
 - **Build phase** (`/ck:make`): wave logs, iteration summaries, task status reports
 - **Inspect phase** (`/ck:check`): gap analysis summaries, peer review output
