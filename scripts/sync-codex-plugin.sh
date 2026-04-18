@@ -33,23 +33,24 @@ fi
 
 for command_file in "$ROOT_DIR"/commands/*.md; do
   command_name="$(basename "$command_file" .md)"
-  # Primary ck- prefix
   ln -sfn "$command_file" "$PROMPTS_DIR/ck-$command_name.md"
-  # Deprecated bp- alias
-  ln -sfn "$command_file" "$PROMPTS_DIR/bp-$command_name.md"
 done
 
-# Clean up stale prompts for both prefixes
-for prefix in ck bp; do
-  for prompt_path in "$PROMPTS_DIR"/${prefix}-*.md; do
-    [[ -e "$prompt_path" || -L "$prompt_path" ]] || continue
-    prompt_name="$(basename "$prompt_path")"
-    command_name="${prompt_name#${prefix}-}"
-    command_name="${command_name%.md}"
-    if [[ ! -f "$ROOT_DIR/commands/$command_name.md" ]]; then
-      rm -f "$prompt_path"
-    fi
-  done
+# Remove any legacy bp- prompt symlinks from earlier installs
+for prompt_path in "$PROMPTS_DIR"/bp-*.md; do
+  [[ -e "$prompt_path" || -L "$prompt_path" ]] || continue
+  rm -f "$prompt_path"
+done
+
+# Clean up stale ck- prompts whose source command no longer exists
+for prompt_path in "$PROMPTS_DIR"/ck-*.md; do
+  [[ -e "$prompt_path" || -L "$prompt_path" ]] || continue
+  prompt_name="$(basename "$prompt_path")"
+  command_name="${prompt_name#ck-}"
+  command_name="${command_name%.md}"
+  if [[ ! -f "$ROOT_DIR/commands/$command_name.md" ]]; then
+    rm -f "$prompt_path"
+  fi
 done
 ok "Linked Codex prompts at $PROMPTS_DIR"
 
