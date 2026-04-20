@@ -1,20 +1,14 @@
 {
   "name": "ck",
-  "version": "3.0.0",
-  "description": "Cavekit — spec-driven AI development with an autonomous execution loop. Four-command main cycle (sketch → map → make → check), plus /ck:ship one-shot, /ck:review audits, /ck:revise kit amendments, /ck:status progress, /ck:design visual system, /ck:research evidence, /ck:init + /ck:config + /ck:resume + /ck:help. Per-task token budgets, stop-hook state machine, model-tier routing, auto-revision from test failures, tool-result caching, Codex peer review, Karpathy behavioural guardrails, caveman token compression, knowledge-graph integration, and design-system enforcement.",
+  "version": "2.0.0",
+  "description": "Cavekit v2 — compressed spec-driven dev. Three commands (/ck:spec, /ck:build, /ck:check) over one SPEC.md file. Caveman encoding. Bug-to-spec backprop.",
   "author": { "name": "Julius Brussee" },
   "license": "MIT",
   "keywords": [
     "spec-driven",
-    "autonomous-loop",
-    "agent",
-    "cavekit",
     "caveman",
-    "token-budget",
-    "revision",
-    "design-system",
-    "knowledge-graph",
-    "karpathy-guardrails",
-    "codex-review"
+    "cavekit",
+    "backprop",
+    "sdd"
   ]
 }
